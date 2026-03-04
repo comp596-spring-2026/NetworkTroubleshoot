@@ -39,7 +39,9 @@ Building a structured, cross-platform diagnostics tools that compiles fragmented
 ### Layer 2 - Data Link Layer
 #### Goal : Is the local network reachable ? (MAC Address / ARP)
 #### Windows / Linux / MacOS :
-- arp
+- arp => moved to 'ip neigh' :
+    - time arp = 0m7.667s
+    - time ip neigh = 0m0.007s & also provides better output
 - Get-NetNeighbor
 
 ### Layer 3 - Network Layer

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tauri App</title>
+    <script type="module" src="/main.js" defer></script>
+  </head>
+
+  <body>
+    <main class="container">
+      <h1>Network Troubleshooter</h1>
+
+      <!-- 
+      <form class="row" id="greet-form">
+        <input id="greet-input" placeholder="Enter a name..." />
+        <button type="submit">Greet</button>
+      </form>
+      <p id="greet-msg"></p>
+    -->
+
+      <form class="row" id="run-ip-link">
+        <button type="submit">ip link</button>
+      </form>
+      <pre id="ip-link-output"></pre>
+
+       <form class="row" id="run-nmcli">
+        <button type="submit">nmcli</button>
+      </form>
+      <pre id="nmcli-output"></pre>
+
+      <form class="row" id="run-ip-neigh">
+        <button type="submit">ip neigh</button>
+      </form>
+      <pre id="ip-neigh-output"></pre>
+
+      <form class="row" id="run-ping">
+        <button type="submit">ping</button>
+      </form>
+      <pre id="ping-output"></pre>
+
+      <form class="row" id="run-netcat">
+        <button type="submit">netcat</button>
+      </form>
+      <pre id="netcat-output"></pre>
+
+      <form class="row" id="run-curl">
+        <button type="submit">curl</button>
+      </form>
+      <pre id="curl-output"></pre>
+
+      <form class="row" id="run-dig">
+        <button type="submit">dig</button>
+      </form>
+      <pre id="dig-output"></pre>
+
+    </main>
+  </body>
+</html>
