@@ -19,8 +19,30 @@
       </form>
       <p id="greet-msg"></p>
     -->
+     <div>
+       <div>
+        <form class="row" id="url-form">
+        <input id="dest-url" placeholder="example.com or https://example.com" />
+        </form>
+      </div>
 
-      <form class="row" id="run-ip-link">
+      <br>
+
+      <div>
+        <form class="row" id="ip-add-form">
+        <input id="dest-ip-add" placeholder="8.8.8.8" />
+        </form>
+      </div>
+
+      <br>
+
+      <button id="submitBtn">Submit</button>
+     </div>
+
+      <div>
+
+        <h2>Linux Commands</h2>
+        <form class="row" id="run-ip-link">
         <button type="submit">ip link</button>
       </form>
       <pre id="ip-link-output"></pre>
@@ -54,6 +76,12 @@
         <button type="submit">dig</button>
       </form>
       <pre id="dig-output"></pre>
+
+      <form class="row" id="run-traceroute">
+        <button type="submit">traceroute</button>
+      </form>
+      <pre id="traceroute-output"></pre>
+      </div>
 
     </main>
   </body>

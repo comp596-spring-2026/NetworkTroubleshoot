@@ -1,4 +1,5 @@
-use std::process::Command;
+use std::{process::Command};
+
 
 pub fn run_cmd(cmd: &str, args: &[&str]) -> Result<String, String> {
     let out = Command::new(cmd)
@@ -50,24 +51,30 @@ pub fn ip_neigh() -> Result<String, String> {
 
 // ping
 #[tauri::command]
-pub fn ping() -> Result<String,String> {
-    run_cmd("ping" , &["-c","4","8.8.8.8"])
+pub fn ping(ip : String) -> Result<String,String> {
+    run_cmd("ping" , &["-c","4", &ip])
 }
 
 // nc
 #[tauri::command]
-pub fn netcat() -> Result<String,String> {
-    run_cmd("nc", &["-zv","www.archlinux.org","443"])
+pub fn netcat(host: String) -> Result<String,String> {
+    run_cmd("nc", &["-zv", &host, "443"])
 }
 
 // curl
 #[tauri::command]
-pub fn curl() -> Result<String,String> {
-    run_cmd("curl", &["-I","https://www.archlinux.org"])
+pub fn curl(url : String) -> Result<String,String> {
+    run_cmd("curl", &["-I", &url])
 }
 
 // dig
 #[tauri::command]
-pub fn dig() -> Result<String,String> {
-    run_cmd("dig", &["https://www.archlinux.org"])
+pub fn dig(host : String) -> Result<String,String> {
+    run_cmd("dig", &[&host])
+}
+
+//traceroute
+#[tauri::command]
+pub fn traceroute(host : String) -> Result<String,String> {
+    run_cmd("traceroute", &[&host])
 }

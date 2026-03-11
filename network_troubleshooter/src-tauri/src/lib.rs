@@ -12,6 +12,7 @@ pub fn run() {
             linux::netcat,
             linux::curl,
             linux::dig,
+            linux::traceroute,
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
