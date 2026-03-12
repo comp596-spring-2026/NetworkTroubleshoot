@@ -1,6 +1,7 @@
 const { invoke } = window.__TAURI__.core;
 
 window.addEventListener("DOMContentLoaded", () => {
+  // linux commands
   const ipLinkMsgEl = document.querySelector("#ip-link-output");
   const nmcliMsgEl = document.querySelector("#nmcli-output");
   const ipNeighMsgEl = document.querySelector("#ip-neigh-output");
@@ -9,6 +10,9 @@ window.addEventListener("DOMContentLoaded", () => {
   const curlMsgEl = document.querySelector("#curl-output");
   const digMsgEl = document.querySelector("#dig-output");
   const traceRouteMsgEl = document.querySelector("#traceroute-output");
+
+  //windows commands
+  const linkStateMsgEl = document.querySelector("#link-state-output");
 
   const DEFAULT_URL = "www.archlinux.org";
   const DEFAULT_IP = "8.8.8.8";
@@ -138,4 +142,16 @@ window.addEventListener("DOMContentLoaded", () => {
       traceRouteMsgEl.textContent = `Error: ${err}`;
     }
   });
+
+  // windows based commands
+  document.querySelector("#run-link-state").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    linkStateMsgEl.textContent = "Running...";
+    try {
+      linkStateMsgEl.textContent = await invoke("link_state");
+    } catch (err) {
+      linkStateMsgEl.textContent = `Error: ${err}`;
+    }
+  });
+
 });
