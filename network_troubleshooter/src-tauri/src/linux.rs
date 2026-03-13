@@ -51,7 +51,7 @@ pub fn ip_neigh() -> Result<String, String> {
 
 // ping
 #[tauri::command]
-pub fn ping(ip : String) -> Result<String,String> {
+pub async fn ping(ip : String) -> Result<String,String> {
     run_cmd("ping" , &["-c","4", &ip])
 }
 
@@ -63,19 +63,19 @@ pub fn netcat(host: String) -> Result<String,String> {
 
 // curl
 #[tauri::command]
-pub fn curl(url : String) -> Result<String,String> {
+pub async fn curl(url : String) -> Result<String,String> {
     run_cmd("curl", &["-I", &url])
 }
 
 // dig
 #[tauri::command]
-pub fn dig(host : String) -> Result<String,String> {
+pub async fn dig(host : String) -> Result<String,String> {
     run_cmd("dig", &[&host])
 }
 
 //traceroute
 #[tauri::command]
-pub fn traceroute(host : String) -> Result<String,String> {
+pub async fn traceroute(host : String) -> Result<String,String> {
     run_cmd("traceroute", &[&host])
 }
 
