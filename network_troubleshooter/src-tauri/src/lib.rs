@@ -4,7 +4,16 @@ mod linux;
 #[cfg(target_os = "windows")]
 mod windows;
 
-mod platform;
+#[tauri::command]
+fn get_os_type() -> &'static str {
+    if cfg!(target_os = "linux") {
+        "linux"
+    } else if cfg!(target_os = "windows") {
+        "windows"
+    } else {
+        "macos"
+    }
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 #[cfg(target_os = "linux")]
@@ -13,7 +22,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             // linux commands
-            platform::get_os_type,
+            get_os_type,
             linux::ip_link,
             linux::nmcli,
             linux::ip_neigh,
@@ -33,7 +42,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             // windows commands
-            platform::get_os_type,
+            get_os_type,
             windows::link_state,
             windows::get_neighbors, // yet to implement in Frontend
             windows::get_ipconfig, // yet to implement in Frontend
