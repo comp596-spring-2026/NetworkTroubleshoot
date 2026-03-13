@@ -69,3 +69,32 @@ pub fn get_ipconfig() -> Result<String,String> {
     ]
      )
 }
+
+// layer 7 
+
+// can DNS resolve?
+#[tauri::command]
+pub fn resolve_dns_name(host : String) -> Result<String,String> {
+    run_cmd("powershell",
+     &[
+        "-NoProfile",
+        "-Command",
+        "Resolve-DnsName",
+        "-Name",
+        &host,
+        "| ConvertTo-Json"
+     ])
+}
+
+// can fetch HTTP resources?
+#[tauri::command]
+pub fn invoke_web_request(url : String) -> Result<String,String> {
+      run_cmd("powershell",
+     &[
+        "-NoProfile",
+        "-Command",
+        "Invoke-WebRequest",
+        &url,
+        "-UseBasicParsing"
+     ])
+}

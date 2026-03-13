@@ -78,3 +78,5 @@ pub fn dig(host : String) -> Result<String,String> {
 pub fn traceroute(host : String) -> Result<String,String> {
     run_cmd("traceroute", &[&host])
 }
+
+
