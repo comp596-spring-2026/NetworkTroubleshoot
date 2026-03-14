@@ -30,7 +30,8 @@ pub fn run_cmd(cmd: &str, args: &[&str]) -> Result<String, String> {
     }
 }
 
-// layer 1
+// layer 1 : physical connection
+// Get-NetAdapter
 #[tauri::command]
 pub fn link_state() -> Result<String,String> {
     run_cmd(
@@ -43,7 +44,8 @@ pub fn link_state() -> Result<String,String> {
 )
 }
 
-// layer 2
+// layer 2 : local network
+// Get-NetNeighbors
 #[tauri::command]
 pub fn get_neighbors() -> Result<String,String> {
      run_cmd(
@@ -56,45 +58,75 @@ pub fn get_neighbors() -> Result<String,String> {
      )
 }
 
-// layer 3
+// layer 3 : ip configuration
+// Get-NetIPConfiguration
 #[tauri::command]
 pub fn get_ipconfig() -> Result<String,String> {
-    // Get-NetIPConfiguration
-     run_cmd(
+    run_cmd(
     "powershell",
     &[
         "-NoProfile",
         "-Command",
-        "Get-NetIPConfiguration | ConvertTo-Json"
+        "Get-NetIPConfiguration" // removed piping to ConvertTo-Json 
     ]
      )
 }
 
-// layer 7 
+// Get-NetRoute
+pub fn get_route() -> Result<String,String> {
+    todo!()
+}
 
+// layer 3 : connectivity test
+// Test-Connection
+pub fn test_connection() -> Result<String,String> {
+    todo!()
+}
+
+// layer 4
+// test UDP / TCP / Port Reachability
+// Test_NetConnection
+#[tauri::command]
+pub fn test_net_connection(host : String) -> Result<String,String> {
+    let cmd = format!("Test-NetConnection -ComputerName {} -Port 443", host);
+    run_cmd(
+        "powershell",
+        &[
+            "-NoProfile",
+            "-Command",
+            &cmd
+        ]
+    )
+}
+
+// layer 7 
 // can DNS resolve?
+// Resolve-DnsName
 #[tauri::command]
 pub fn resolve_dns_name(host : String) -> Result<String,String> {
+    let cmd = format!("Resolve-DnsName -Name {} | ConvertTo-Json", &host);
     run_cmd("powershell",
      &[
         "-NoProfile",
         "-Command",
-        "Resolve-DnsName",
-        "-Name",
-        &host,
-        "| ConvertTo-Json"
+        &cmd
      ])
 }
 
 // can fetch HTTP resources?
+//Invoke-WebRequest
 #[tauri::command]
 pub fn invoke_web_request(url : String) -> Result<String,String> {
-      run_cmd("powershell",
+    let cmd = format!("Invoke-WebRequest {} -UseBasicParsing", &url);
+    run_cmd("powershell",
      &[
         "-NoProfile",
         "-Command",
-        "Invoke-WebRequest",
-        &url,
-        "-UseBasicParsing"
+        &cmd
      ])
+}
+
+//layer 3 / 4 : path analysis 
+pub fn tracert() -> Result<String,String> {
+    todo!()
 }

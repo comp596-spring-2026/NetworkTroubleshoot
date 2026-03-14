@@ -31,6 +31,8 @@ pub fn run() {
             linux::curl,
             linux::dig,
             linux::traceroute,
+            linux::ip_addr, // yet to implement in frontend
+            linux::ip_route, // yet to implement in frontend
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
