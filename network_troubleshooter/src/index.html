@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="styles.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tauri App</title>
+    <title>Network Troubleshooter</title>
     <script type="module" src="/main.js" defer></script>
   </head>
 
@@ -12,90 +12,119 @@
     <main class="container">
       <h1>Network Troubleshooter</h1>
 
-      <!-- 
-      <form class="row" id="greet-form">
-        <input id="greet-input" placeholder="Enter a name..." />
-        <button type="submit">Greet</button>
-      </form>
-      <p id="greet-msg"></p>
-    -->
-     <div>
-       <div>
-        <form class="row" id="url-form">
-        <input id="dest-url" placeholder="example.com or https://example.com" />
-        </form>
-      </div>
-
-      <br>
-
       <div>
-        <form class="row" id="ip-add-form">
-        <input id="dest-ip-add" placeholder="8.8.8.8" />
+        <form class="row" id="url-form">
+          <input id="dest-url" placeholder="example.com or https://example.com" />
         </form>
+
+        <br />
+
+        <form class="row" id="ip-add-form">
+          <input id="dest-ip-add" placeholder="8.8.8.8" />
+        </form>
+
+        <br />
+
+        <button id="submitBtn">Submit</button>
       </div>
-
-      <br>
-
-      <button id="submitBtn">Submit</button>
-     </div>
 
       <div id="linux">
-
         <h2>Linux Commands</h2>
+
         <form class="row" id="run-ip-link">
-        <button type="submit">ip link</button>
-      </form>
-      <pre id="ip-link-output"></pre>
+          <button type="submit">ip link</button>
+        </form>
+        <pre id="ip-link-output"></pre>
 
-       <form class="row" id="run-nmcli">
-        <button type="submit">nmcli</button>
-      </form>
-      <pre id="nmcli-output"></pre>
+        <form class="row" id="run-ip-addr">
+          <button type="submit">ip addr</button>
+        </form>
+        <pre id="ip-addr-output"></pre>
 
-      <form class="row" id="run-ip-neigh">
-        <button type="submit">ip neigh</button>
-      </form>
-      <pre id="ip-neigh-output"></pre>
+        <form class="row" id="run-ip-route">
+          <button type="submit">ip route</button>
+        </form>
+        <pre id="ip-route-output"></pre>
 
-      <form class="row" id="run-ping">
-        <button type="submit">ping</button>
-      </form>
-      <pre id="ping-output"></pre>
+        <form class="row" id="run-nmcli">
+          <button type="submit">nmcli</button>
+        </form>
+        <pre id="nmcli-output"></pre>
 
-      <form class="row" id="run-netcat">
-        <button type="submit">netcat</button>
-      </form>
-      <pre id="netcat-output"></pre>
+        <form class="row" id="run-ip-neigh">
+          <button type="submit">ip neigh</button>
+        </form>
+        <pre id="ip-neigh-output"></pre>
 
-      <form class="row" id="run-curl">
-        <button type="submit">curl</button>
-      </form>
-      <pre id="curl-output"></pre>
+        <form class="row" id="run-ping">
+          <button type="submit">ping</button>
+        </form>
+        <pre id="ping-output"></pre>
 
-      <form class="row" id="run-dig">
-        <button type="submit">dig</button>
-      </form>
-      <pre id="dig-output"></pre>
+        <form class="row" id="run-netcat">
+          <button type="submit">netcat</button>
+        </form>
+        <pre id="netcat-output"></pre>
 
-      <form class="row" id="run-traceroute">
-        <button type="submit">traceroute</button>
-      </form>
-      <pre id="traceroute-output"></pre>
+        <form class="row" id="run-curl">
+          <button type="submit">curl</button>
+        </form>
+        <pre id="curl-output"></pre>
+
+        <form class="row" id="run-dig">
+          <button type="submit">dig</button>
+        </form>
+        <pre id="dig-output"></pre>
+
+        <form class="row" id="run-traceroute">
+          <button type="submit">traceroute</button>
+        </form>
+        <pre id="traceroute-output"></pre>
       </div>
 
-    
-      </div>
-
-
-        <div id="windows">
+      <div id="windows">
         <h2>Windows Commands</h2>
-        <!-- Get Link State -->
-        <form class="row" id="run-link-state">
-        <button type="submit">link state</button>
-      </form>
-      <pre id="link-state-output"></pre>
-      </div>
 
+        <form class="row" id="run-link-state">
+          <button type="submit">Link State</button>
+        </form>
+        <pre id="link-state-output"></pre>
+
+        <form class="row" id="run-get-neighbors">
+          <button type="submit">Get Neighbors</button>
+        </form>
+        <pre id="neighbors-output"></pre>
+
+        <form class="row" id="run-get-ipconfig">
+          <button type="submit">IP Configuration</button>
+        </form>
+        <pre id="ipconfig-output"></pre>
+
+        <form class="row" id="run-get-route">
+          <button type="submit">Get Route</button>
+        </form>
+        <pre id="route-output"></pre>
+
+        <form class="row" id="run-test-connection">
+          <button type="submit">Test Connection</button>
+        </form>
+        <pre id="win-ping-output"></pre>
+
+        <form class="row" id="run-test-net-connection">
+          <button type="submit">Test Net Connection</button>
+        </form>
+        <pre id="net-connection-output"></pre>
+
+        <form class="row" id="run-resolve-dns">
+          <button type="submit">Resolve DNS</button>
+        </form>
+        <pre id="dns-output"></pre>
+
+        <form class="row" id="run-web-request">
+          <button type="submit">Web Request</button>
+        </form>
+        <pre id="web-output"></pre>
+      </div>
     </main>
   </body>
 </html>

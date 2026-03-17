@@ -31,8 +31,8 @@ pub fn run() {
             linux::curl,
             linux::dig,
             linux::traceroute,
-            linux::ip_addr, // yet to implement in frontend
-            linux::ip_route, // yet to implement in frontend
+            linux::ip_addr,
+            linux::ip_route, 
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -46,10 +46,13 @@ pub fn run() {
             // windows commands
             get_os_type,
             windows::link_state,
-            windows::get_neighbors, // yet to implement in Frontend
-            windows::get_ipconfig, // yet to implement in Frontend
-            windows::resolve_dns_name, // yet to implement in Frontend
-            windows::invoke_web_request, // yet to implement in Frontend
+            windows::get_neighbors,
+            windows::get_ipconfig, 
+            windows::resolve_dns_name, 
+            windows::invoke_web_request,
+            windows::get_route,
+            windows::test_connection,
+            windows::test_net_connection, 
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
