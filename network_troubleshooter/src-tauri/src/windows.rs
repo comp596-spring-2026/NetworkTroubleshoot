@@ -43,35 +43,35 @@ fn run_powershell(script: &str) -> Result<String, String> {
 // layer 1 : physical connection
 // Get-NetAdapter
 #[tauri::command]
-pub fn link_state() -> Result<String, String> {
+pub async fn link_state() -> Result<String, String> {
     run_powershell("Get-NetAdapter | ConvertTo-Json -Depth 4")
 }
 
 // layer 2 : local network
 // Get-NetNeighbor
 #[tauri::command]
-pub fn get_neighbors() -> Result<String, String> {
+pub async fn get_neighbors() -> Result<String, String> {
     run_powershell("Get-NetNeighbor | ConvertTo-Json -Depth 4")
 }
 
 // layer 3 : ip configuration
 // Get-NetIPConfiguration
 #[tauri::command]
-pub fn get_ipconfig() -> Result<String, String> {
+pub async fn get_ipconfig() -> Result<String, String> {
     run_powershell("Get-NetIPConfiguration | ConvertTo-Json -Depth 6")
 }
 
 // layer 3 : routing table
 // Get-NetRoute
 #[tauri::command]
-pub fn get_route() -> Result<String, String> {
+pub async fn get_route() -> Result<String, String> {
     run_powershell("Get-NetRoute | ConvertTo-Json -Depth 4")
 }
 
 // layer 3 : connectivity test
 // Test-Connection
 #[tauri::command]
-pub fn test_connection(host: String) -> Result<String, String> {
+pub async fn test_connection(host: String) -> Result<String, String> {
     let script = format!(
         "Test-Connection -ComputerName '{}' -Count 4 | ConvertTo-Json -Depth 4",
         host
@@ -83,7 +83,7 @@ pub fn test_connection(host: String) -> Result<String, String> {
 // test UDP / TCP / Port Reachability
 // Test-NetConnection
 #[tauri::command]
-pub fn test_net_connection(host: String) -> Result<String, String> {
+pub async fn test_net_connection(host: String) -> Result<String, String> {
     let script = format!(
         "Test-NetConnection -ComputerName '{}' -Port 443 | ConvertTo-Json -Depth 4",
         host
@@ -95,7 +95,7 @@ pub fn test_net_connection(host: String) -> Result<String, String> {
 // can DNS resolve?
 // Resolve-DnsName
 #[tauri::command]
-pub fn resolve_dns_name(host: String) -> Result<String, String> {
+pub async fn resolve_dns_name(host: String) -> Result<String, String> {
     let script = format!(
         "Resolve-DnsName -Name '{}' | ConvertTo-Json -Depth 4",
         host
@@ -106,9 +106,9 @@ pub fn resolve_dns_name(host: String) -> Result<String, String> {
 // can fetch HTTP resources?
 // Invoke-WebRequest
 #[tauri::command]
-pub fn invoke_web_request(url: String) -> Result<String, String> {
+pub async fn invoke_web_request(url: String) -> Result<String, String> {
     let script = format!(
-        "(Invoke-WebRequest -Uri '{}' -UseBasicParsing) | ConvertTo-Json -Depth 4",
+        "(Invoke-WebRequest -Uri '{}' -UseBasicParsing)",
         url
     );
     run_powershell(&script)
@@ -117,6 +117,6 @@ pub fn invoke_web_request(url: String) -> Result<String, String> {
 // layer 3 / 4 : path analysis
 // tracert
 #[tauri::command]
-pub fn tracert(host: String) -> Result<String, String> {
+pub async fn tracert(host: String) -> Result<String, String> {
     run_cmd("tracert", &[&host])
 }

@@ -194,6 +194,7 @@ function setupWindowsHandlers() {
   const netConnectionMsgEl = document.querySelector("#net-connection-output");
   const dnsMsgEl = document.querySelector("#dns-output");
   const webMsgEl = document.querySelector("#web-output");
+  const tracertMsgEl = document.querySelector("#tracert-output");
 
   document.querySelector("#run-link-state")?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -279,6 +280,18 @@ function setupWindowsHandlers() {
       setOutput(webMsgEl, await invoke("invoke_web_request", { url: finalUrl }));
     } catch (err) {
       setOutput(webMsgEl, `Error: ${err}`);
+    }
+  });
+
+  document.querySelector("#run-tracert")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setOutput(tracertMsgEl, "Running...");
+    try {
+      const { url } = getArgs();
+      const finalUrl = url.includes("://") ? url : `https://${url}`;
+      setOutput(tracertMsgEl, await invoke("tracert", { url: finalUrl }));
+    } catch (err) {
+      setOutput(tracertMsgEl, `Error: ${err}`);
     }
   });
 }

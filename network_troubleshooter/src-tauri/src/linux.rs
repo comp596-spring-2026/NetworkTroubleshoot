@@ -1,5 +1,7 @@
 use std::{process::Command};
 
+use crate::linux_parser;
+
 
 pub fn run_cmd(cmd: &str, args: &[&str]) -> Result<String, String> {
     let out = Command::new(cmd)
@@ -36,7 +38,9 @@ pub fn run_cmd(cmd: &str, args: &[&str]) -> Result<String, String> {
 // ip link
 #[tauri::command]
 pub fn ip_link() -> Result<String, String> {
-    run_cmd("ip", &["-j","link"])
+    let output = run_cmd("ip", &["-j", "link"])?;
+    let parsed = linux_parser::parse_ip_link(&output);
+    Ok(format!("{parsed:#?}"))
 }
 
 // nmcli
@@ -59,7 +63,9 @@ pub fn ip_neigh() -> Result<String, String> {
 // ip addr
 #[tauri::command]
 pub fn ip_addr() -> Result<String,String> {
-    run_cmd("ip", &["-j","addr"])
+   let output =  run_cmd("ip", &["-j","addr"])?;
+   let parsed = linux_parser::parse_ip_addr(&output);
+   Ok(format!("{parsed:#?}"))
 }
 
 // ip route 

@@ -1,5 +1,11 @@
+mod models;
+
 #[cfg(target_os = "linux")]
 mod linux;
+#[cfg(target_os = "linux")]
+mod linux_parser;
+
+
 
 #[cfg(target_os = "windows")]
 mod windows;
@@ -52,7 +58,8 @@ pub fn run() {
             windows::invoke_web_request,
             windows::get_route,
             windows::test_connection,
-            windows::test_net_connection, 
+            windows::test_net_connection,
+            windows::tracert, 
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
