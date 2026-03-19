@@ -88,7 +88,9 @@ pub async fn ip_route() -> Result<String,String> {
 // ping
 #[tauri::command]
 pub async fn ping(ip : String) -> Result<String,String> {
-    run_cmd("ping" , &["-c","4", &ip])
+    let output = run_cmd("ping" , &["-c","4", &ip])?;
+    let parsed = linux_parser::parse_ping(&output);
+    Ok(format!("{parsed:#?}"))
 }
 
 // Layer 4 : Transport / Port Reachability
@@ -96,7 +98,9 @@ pub async fn ping(ip : String) -> Result<String,String> {
 // nc
 #[tauri::command]
 pub async fn netcat(host: String) -> Result<String,String> {
-    run_cmd("nc", &["-zv", &host, "443"])
+   let output =  run_cmd("nc", &["-zv", &host, "443"])?;
+   let parsed = linux_parser::parse_netcat(&output);
+   Ok(format!("{parsed:#?}"))
 }
 
 

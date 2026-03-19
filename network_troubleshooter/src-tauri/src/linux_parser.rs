@@ -6,7 +6,9 @@ use crate::models::{InterfaceStatus,
     InterfaceAddress,
     RouteInfo,
     ConnectionStatus,
-    NeighborState};
+    NeighborState,
+    TcpStatus,
+    ReachabilityStatus};
 
 // ======================= ip link =======================
 
@@ -180,6 +182,146 @@ pub fn parse_ip_neigh(output: &str) -> Result<Vec<NeighborState>,String> {
                 matches!(s.as_str(), "REACHABLE" | "STALE" | "DELAY" | "PROBE" | "PERMANENT")
             }),
     }).collect();
+
+    Ok(parsed)
+}
+
+// ======================= netcat ======================= 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct NetCatRaw {
+    pub host : String,
+    pub ip : String,
+    pub port : String,
+    pub protocol : String,
+    pub status : String,
+}
+
+pub fn parse_netcat(output: &str) -> Result<TcpStatus, String> {
+    let data: Vec<&str> = output.split_whitespace().collect();
+
+    if data.len() < 8 {
+        return Err(format!("unexpected netcat output: {output}"));
+    }
+
+    let raw = NetCatRaw {
+        host: data[2].to_string(),
+        ip: data[3].trim_matches(|c| c == '(' || c == ')').to_string(),
+        port: data[4].to_string(),
+        protocol: data[6].trim_matches(|c| c == '[' || c == ']').to_string(),
+        status: data[7].trim_end_matches('!').to_string(),
+    };
+
+
+    // dbg!(&raw);
+
+    let parsed = TcpStatus {
+        protocol : raw.protocol,
+        is_successful : raw.status == "succeeded",
+    };
+
+    Ok(parsed)
+}
+
+
+// ======================= ping ======================= 
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PingRaw {
+    pub sent: String,
+    pub received: String,
+    pub loss: String,
+    pub total_time: String,
+    pub avg_latency_ms: String,
+}
+
+pub fn parse_ping(output: &str) -> Result<ReachabilityStatus, String> {
+    // Example stats line:
+    // 2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+    let stats_line = output
+        .lines()
+        .find(|line| line.contains("packets transmitted"))
+        .ok_or("Could not find ping statistics line")?;
+
+    // Example RTT line:
+    // rtt min/avg/max/mdev = 13.801/14.001/14.201/0.200 ms
+    let rtt_line = output
+        .lines()
+        .find(|line| line.contains("min/avg/max"))
+        .ok_or("Could not find RTT line")?;
+
+    let stats_parts: Vec<&str> = stats_line.split(',').map(|s| s.trim()).collect();
+    if stats_parts.len() < 4 {
+        return Err(format!("Unexpected ping statistics format: {stats_line}"));
+    }
+
+    let sent = stats_parts[0]
+        .split_whitespace()
+        .next()
+        .ok_or("Could not parse sent packets")?
+        .to_string();
+
+    let received = stats_parts[1]
+        .split_whitespace()
+        .next()
+        .ok_or("Could not parse received packets")?
+        .to_string();
+
+    let loss = stats_parts[2]
+        .split_whitespace()
+        .next()
+        .ok_or("Could not parse packet loss")?
+        .to_string();
+
+    let total_time = stats_parts[3]
+        .split_whitespace()
+        .nth(1)
+        .ok_or("Could not parse total ping time")?
+        .to_string();
+
+    // Split on '=' and take right side:
+    let rtt_values = rtt_line
+        .split('=')
+        .nth(1)
+        .ok_or("Unexpected RTT format")?
+        .trim()
+        .trim_end_matches(" ms");
+
+    // values look like: 13.801/14.001/14.201/0.200
+    let mut rtt_parts = rtt_values.split('/');
+
+    let _min = rtt_parts.next();
+    let avg_latency = rtt_parts
+        .next()
+        .ok_or("Could not parse average latency")?
+        .to_string();
+
+    let raw = PingRaw {
+        sent,
+        received,
+        loss,
+        total_time,
+        avg_latency_ms: avg_latency,
+    };
+
+    let loss_num: usize = raw
+        .loss
+        .trim_end_matches('%')
+        .parse::<usize>()
+        .map_err(|e| e.to_string())?;
+
+    let avg_latency_num: f64 = raw
+        .avg_latency_ms
+        .parse::<f64>()
+        .map_err(|e| e.to_string())?;
+
+    let latency_threshold_ms = 100.0;
+
+    let parsed = ReachabilityStatus {
+        has_loss: loss_num > 0,
+        is_reasonable: avg_latency_num <= latency_threshold_ms,
+    };
 
     Ok(parsed)
 }

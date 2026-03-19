@@ -39,3 +39,15 @@ pub struct NeighborState {
     pub mac: Option<String>,
     pub is_reachable: bool,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TcpStatus {
+    pub protocol : String,
+    pub is_successful : bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct  ReachabilityStatus { // ping
+   pub has_loss : bool,
+   pub is_reasonable : bool,
+}
