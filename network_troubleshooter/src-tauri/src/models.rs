@@ -15,3 +15,27 @@ pub struct InterfaceAddress {
     pub ipv4: Option<String>,
     pub ipv6: Option<String>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RouteInfo {
+    pub is_default : bool,
+    pub gateway : Option<String>,
+    pub interface : String,
+    pub metric : Option<u32>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ConnectionStatus {
+    pub name: String,
+    pub kind: String,
+    pub is_connected: bool,
+    pub connection: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct NeighborState {
+    pub ip: String,
+    pub interface: String,
+    pub mac: Option<String>,
+    pub is_reachable: bool,
+}

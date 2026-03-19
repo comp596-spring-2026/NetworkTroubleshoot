@@ -37,7 +37,7 @@ pub fn run_cmd(cmd: &str, args: &[&str]) -> Result<String, String> {
 
 // ip link
 #[tauri::command]
-pub fn ip_link() -> Result<String, String> {
+pub async fn ip_link() -> Result<String, String> {
     let output = run_cmd("ip", &["-j", "link"])?;
     let parsed = linux_parser::parse_ip_link(&output);
     Ok(format!("{parsed:#?}"))
@@ -45,16 +45,23 @@ pub fn ip_link() -> Result<String, String> {
 
 // nmcli
 #[tauri::command]
-pub fn nmcli() -> Result<String, String> {
-    run_cmd("nmcli", &["dev", "status"])
+pub async fn nmcli() -> Result<String, String> {
+   let output = run_cmd(
+    "nmcli",
+    &["-t", "-f", "DEVICE,TYPE,STATE,CONNECTION", "dev", "status"],
+    )?;
+    let parsed = linux_parser::parse_nmcli(&output);
+    Ok(format!("{parsed:#?}"))
 }
 
 // Layer 2 : Local Network
 
 // ip neigh
 #[tauri::command]
-pub fn ip_neigh() -> Result<String, String> {
-    run_cmd("ip", &["-j","neigh"])
+pub async fn ip_neigh() -> Result<String, String> {
+    let output = run_cmd("ip", &["-j","neigh"])?;
+    let parsed = linux_parser::parse_ip_neigh(&output);
+    Ok(format!("{parsed:#?}"))
 }
 
 
@@ -62,7 +69,7 @@ pub fn ip_neigh() -> Result<String, String> {
 
 // ip addr
 #[tauri::command]
-pub fn ip_addr() -> Result<String,String> {
+pub async fn ip_addr() -> Result<String,String> {
    let output =  run_cmd("ip", &["-j","addr"])?;
    let parsed = linux_parser::parse_ip_addr(&output);
    Ok(format!("{parsed:#?}"))
@@ -70,8 +77,10 @@ pub fn ip_addr() -> Result<String,String> {
 
 // ip route 
 #[tauri::command]
-pub fn ip_route() -> Result<String,String> {
-    run_cmd("ip", &["-j","route"])
+pub async fn ip_route() -> Result<String,String> {
+    let output = run_cmd("ip", &["-j","route"])?;
+    let parsed = linux_parser::parse_ip_route(&output);
+    Ok(format!("{parsed:#?}"))
 }
 
 // Layer 3 : Connectivity Test
@@ -86,7 +95,7 @@ pub async fn ping(ip : String) -> Result<String,String> {
 
 // nc
 #[tauri::command]
-pub fn netcat(host: String) -> Result<String,String> {
+pub async fn netcat(host: String) -> Result<String,String> {
     run_cmd("nc", &["-zv", &host, "443"])
 }
 
