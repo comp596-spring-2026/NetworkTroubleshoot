@@ -2,13 +2,19 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::models::{InterfaceStatus,
+use crate::models::{
+    InterfaceStatus,
     InterfaceAddress,
     RouteInfo,
     ConnectionStatus,
     NeighborState,
     TcpStatus,
-    ReachabilityStatus};
+    ReachabilityStatus,
+    DnsStatus,
+    HttpStatus,
+    TraceHop,
+    TraceStatus
+    };
 
 // ======================= ip link =======================
 
@@ -226,7 +232,6 @@ pub fn parse_netcat(output: &str) -> Result<TcpStatus, String> {
 
 // ======================= ping ======================= 
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PingRaw {
     pub sent: String,
@@ -324,4 +329,264 @@ pub fn parse_ping(output: &str) -> Result<ReachabilityStatus, String> {
     };
 
     Ok(parsed)
+}
+
+// ======================= dig =======================
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DigRaw {
+    pub query: String,
+    pub record_type: String,
+    pub status: String,
+    pub answers: Vec<String>,
+}
+
+#[derive(Debug, PartialEq)]
+enum DigSection {
+    None,
+    Question,
+    Answer,
+}
+
+pub fn parse_dig(output: &str) -> Result<DnsStatus, String> {
+    let mut section = DigSection::None;
+
+    let mut query: Option<String> = None;
+    let mut record_type: Option<String> = None;
+    let mut status: Option<String> = None;
+    let mut answers: Vec<String> = Vec::new();
+
+    for each in output.lines() {
+        let trimmed = each.trim();
+
+        if trimmed.is_empty() {
+            continue;
+        }
+
+        if trimmed.starts_with("status:") {
+            let value = trimmed
+                .split_once(':')
+                .ok_or("could not parse status line")?
+                .1
+                .trim();
+
+            status = Some(value.to_string());
+            continue;
+        }
+
+        if trimmed.starts_with("QUESTION_SECTION:") {
+            section = DigSection::Question;
+            continue;
+        }
+
+        if trimmed.starts_with("ANSWER_SECTION:") {
+            section = DigSection::Answer;
+            continue;
+        }
+
+        if trimmed.starts_with("- ") {
+            let cleaned = trimmed
+                .trim_start_matches("- ")
+                .trim_matches(&['\'', '"', ' '][..]);
+
+            let parts: Vec<&str> = cleaned.split_whitespace().collect();
+
+            match section {
+                DigSection::Question => {
+                    if parts.len() >= 3 {
+                        let q = parts[0].trim_end_matches('.');
+                        let rtype = parts[2];
+
+                        query = Some(q.to_string());
+                        record_type = Some(rtype.to_string());
+                    }
+                }
+
+                DigSection::Answer => {
+                    if parts.len() >= 5 {
+                        let answer_type = parts[3];
+                        let answer_value = parts[4];
+
+                        if answer_type == "A" || answer_type == "AAAA" {
+                            answers.push(answer_value.to_string());
+                        }
+                    }
+                }
+
+                DigSection::None => {}
+            }
+        }
+    }
+
+    let raw = DigRaw {
+        query: query.ok_or("could not find query in QUESTION_SECTION")?,
+        record_type: record_type.ok_or("could not find record type in QUESTION_SECTION")?,
+        status: status.ok_or("could not find status")?,
+        answers,
+    };
+
+    let parsed = DnsStatus {
+    query: raw.query,
+    record_type: raw.record_type,
+    is_successful: raw.status == "NOERROR" && !raw.answers.is_empty(),
+    failure_reason: if raw.status == "NOERROR" && !raw.answers.is_empty() {
+        None
+    } else {
+        Some(raw.status)
+    },
+    resolved_values: raw.answers,
+    };
+
+    Ok(parsed)
+}
+
+// ======================= curl =======================
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CurlRaw {
+    pub url: String,
+    pub status_code: Option<u16>,
+}
+
+pub fn parse_curl(output: &str, url: &str) -> Result<HttpStatus, String> {
+    let mut status_code: Option<u16> = None;
+
+    for line in output.lines() {
+        let trimmed = line.trim();
+
+        if trimmed.starts_with("HTTP/") {
+            let parts: Vec<&str> = trimmed.split_whitespace().collect();
+
+            if parts.len() < 2 {
+                return Err(format!("unexpected HTTP status line: {trimmed}"));
+            }
+
+            let code = parts[1]
+                .parse::<u16>()
+                .map_err(|e| e.to_string())?;
+
+            status_code = Some(code);
+            break;
+        }
+    }
+
+    let raw = CurlRaw {
+        url: url.to_string(),
+        status_code,
+    };
+
+    let parsed = HttpStatus {
+    url: raw.url,
+    status_code: raw.status_code,
+    is_successful: raw.status_code.is_some(),
+    };
+
+    Ok(parsed)
+}
+
+// ======================= traceroute =======================
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TraceHopRaw {
+    pub hop_number: u8,
+    pub host: Option<String>,
+    pub ip: Option<String>,
+    pub latencies_ms: Vec<f64>,
+    pub timed_out: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TraceRaw {
+    pub target: String,
+    pub hops: Vec<TraceHopRaw>,
+}
+
+pub fn parse_traceroute(output: &str, target: &str) -> Result<TraceStatus, String> {
+    let mut raw_hops = Vec::new();
+
+    for line in output.lines() {
+        let trimmed = line.trim();
+
+        if trimmed.is_empty() {
+            continue;
+        }
+
+        let parts: Vec<&str> = trimmed.split_whitespace().collect();
+        if parts.is_empty() {
+            continue;
+        }
+
+        // Only parse actual hop lines
+        let hop_number = match parts[0].parse::<u8>() {
+            Ok(n) => n,
+            Err(_) => continue,
+        };
+
+        // Timeout hop: "3  * * *"
+        if parts.len() >= 2 && parts[1] == "*" {
+            raw_hops.push(TraceHopRaw {
+                hop_number,
+                host: None,
+                ip: None,
+                latencies_ms: Vec::new(),
+                timed_out: true,
+            });
+            continue;
+        }
+
+        let mut host: Option<String> = None;
+        let mut ip: Option<String> = None;
+        let mut latencies_ms: Vec<f64> = Vec::new();
+
+        // Example:
+        // 1  router.local (192.168.1.1)  1.123 ms  1.045 ms  0.980 ms
+        // 2  10.0.0.1  8.231 ms  9.101 ms  8.900 ms
+        if parts.len() >= 3 && parts[2].starts_with('(') && parts[2].ends_with(')') {
+            host = Some(parts[1].to_string());
+            ip = Some(parts[2].trim_matches(|c| c == '(' || c == ')').to_string());
+        } else if parts.len() >= 2 {
+            let second = parts[1];
+
+            if second.chars().all(|c| c.is_ascii_digit() || c == '.' || c == ':') {
+                ip = Some(second.to_string());
+            } else {
+                host = Some(second.to_string());
+            }
+        }
+
+        for token in &parts {
+            if let Ok(ms) = token.parse::<f64>() {
+                latencies_ms.push(ms);
+            }
+        }
+
+        raw_hops.push(TraceHopRaw {
+            hop_number,
+            host,
+            ip,
+            latencies_ms,
+            timed_out: false,
+        });
+    }
+
+    let raw = TraceRaw {
+        target: target.to_string(),
+        hops: raw_hops,
+    };
+
+    let destination_reached = raw.hops.last().is_some_and(|last| !last.timed_out);
+
+    let hops = raw.hops.into_iter().map(|hop| TraceHop {
+        hop_number: hop.hop_number,
+        host: hop.host,
+        ip: hop.ip,
+        latencies_ms: hop.latencies_ms,
+        timed_out: hop.timed_out,
+    }).collect();
+
+    Ok(TraceStatus {
+        target: raw.target,
+        hops,
+        destination_reached,
+    })
 }

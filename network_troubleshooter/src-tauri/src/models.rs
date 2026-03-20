@@ -51,3 +51,35 @@ pub struct  ReachabilityStatus { // ping
    pub has_loss : bool,
    pub is_reasonable : bool,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DnsStatus {
+    pub query: String,
+    pub record_type: String,
+    pub resolved_values: Vec<String>,
+    pub is_successful: bool,
+    pub failure_reason: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct HttpStatus {
+    pub url: String,
+    pub status_code: Option<u16>,
+    pub is_successful: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TraceHop {
+    pub hop_number: u8,
+    pub host: Option<String>,
+    pub ip: Option<String>,
+    pub latencies_ms: Vec<f64>,
+    pub timed_out: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TraceStatus {
+    pub target: String,
+    pub hops: Vec<TraceHop>,
+    pub destination_reached: bool,
+}

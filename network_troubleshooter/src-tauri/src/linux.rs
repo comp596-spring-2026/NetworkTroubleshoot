@@ -109,7 +109,9 @@ pub async fn netcat(host: String) -> Result<String,String> {
 // curl
 #[tauri::command]
 pub async fn curl(url : String) -> Result<String,String> {
-    run_cmd("curl", &["-I", &url])
+    let output = run_cmd("curl", &["-I", &url])?;
+    let parsed = linux_parser::parse_curl(&output,&url);
+    Ok(format!("{parsed:#?}"))
 }
 
 // Layer 7 : DNS Resolution
@@ -117,15 +119,19 @@ pub async fn curl(url : String) -> Result<String,String> {
 // dig
 #[tauri::command]
 pub async fn dig(host : String) -> Result<String,String> {
-    run_cmd("dig", &[&host])
+    let output = run_cmd("dig", &[&host , "+yaml"])?;
+    let parsed = linux_parser::parse_dig(&output);
+    Ok(format!("{parsed:#?}"))
 }
 
 // Layer 3 / 4 : Path Analysis
 
 //traceroute
 #[tauri::command]
-pub async fn traceroute(host : String) -> Result<String,String> {
-    run_cmd("traceroute", &[&host])
+pub async fn traceroute(host: String) -> Result<String, String> {
+    let output = run_cmd("traceroute", &[&host])?;
+    let parsed = linux_parser::parse_traceroute(&output, &host)?;
+    Ok(format!("{parsed:#?}"))
 }
 
 
