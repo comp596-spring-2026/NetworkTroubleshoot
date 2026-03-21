@@ -47,7 +47,7 @@ fn run_powershell(script: &str) -> Result<String, String> {
 pub async fn link_state() -> Result<String, String> {
     let output = run_powershell("Get-NetAdapter | ConvertTo-Json -Depth 4")?;
     let parsed = windows_parser::parse_net_adapter(&output);
-
+    Ok(format!("{parsed:#?}")) 
 }
 
 // layer 2 : local network
