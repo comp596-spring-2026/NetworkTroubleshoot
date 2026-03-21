@@ -1,4 +1,5 @@
 use std::process::Command;
+use crate::windows_parser;
 
 fn run_cmd(cmd: &str, args: &[&str]) -> Result<String, String> {
     let out = Command::new(cmd)
@@ -44,7 +45,9 @@ fn run_powershell(script: &str) -> Result<String, String> {
 // Get-NetAdapter
 #[tauri::command]
 pub async fn link_state() -> Result<String, String> {
-    run_powershell("Get-NetAdapter | ConvertTo-Json -Depth 4")
+    let output = run_powershell("Get-NetAdapter | ConvertTo-Json -Depth 4")?;
+    let parsed = windows_parser::parse_net_adapter(&output);
+
 }
 
 // layer 2 : local network

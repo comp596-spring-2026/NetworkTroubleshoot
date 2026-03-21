@@ -9,6 +9,8 @@ mod linux_parser;
 
 #[cfg(target_os = "windows")]
 mod windows;
+#[cfg(target_os = "windows")]
+mod windows_parser;
 
 #[tauri::command]
 fn get_os_type() -> &'static str {
