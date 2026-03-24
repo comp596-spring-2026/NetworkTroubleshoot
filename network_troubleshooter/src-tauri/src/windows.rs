@@ -129,7 +129,7 @@ pub async fn invoke_web_request(url: String) -> Result<String, String> {
     );
 
    let output =  run_powershell(&script)?;
-   let parsed = windows_parser::parse_invoke_web_request(&output);
+   let parsed = windows_parser::parse_invoke_web_request(&output,&url);
    Ok(format!("{parsed:#?}"))
 }
 
