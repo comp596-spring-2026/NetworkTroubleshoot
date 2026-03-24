@@ -54,21 +54,27 @@ pub async fn link_state() -> Result<String, String> {
 // Get-NetNeighbor
 #[tauri::command]
 pub async fn get_neighbors() -> Result<String, String> {
-    run_powershell("Get-NetNeighbor | ConvertTo-Json -Depth 4")
+    let output = run_powershell("Get-NetNeighbor | ConvertTo-Json -Depth 4")?;
+    let parsed = windows_parser::parse_net_neighbor(&output);
+    Ok(format!("{parsed:#?}")) 
 }
 
 // layer 3 : ip configuration
 // Get-NetIPConfiguration
 #[tauri::command]
 pub async fn get_ipconfig() -> Result<String, String> {
-    run_powershell("Get-NetIPConfiguration | ConvertTo-Json -Depth 6")
+    let output = run_powershell("Get-NetIPConfiguration | ConvertTo-Json -Depth 6")?;
+    let parsed = windows_parser::parse_net_ip_config(&output);
+    Ok(format!("{parsed:#?}")) 
 }
 
 // layer 3 : routing table
 // Get-NetRoute
 #[tauri::command]
 pub async fn get_route() -> Result<String, String> {
-    run_powershell("Get-NetRoute | ConvertTo-Json -Depth 4")
+    let output = run_powershell("Get-NetRoute | ConvertTo-Json -Depth 4")?;
+    let parsed = windows_parser::parse_net_route(&output);
+    Ok(format!("{parsed:#?}")) 
 }
 
 // layer 3 : connectivity test
@@ -79,7 +85,9 @@ pub async fn test_connection(host: String) -> Result<String, String> {
         "Test-Connection -ComputerName '{}' -Count 4 | ConvertTo-Json -Depth 4",
         host
     );
-    run_powershell(&script)
+    let output = run_powershell(&script)?;
+    let parsed = windows_parser::parse_test_connection(&output);
+    Ok(format!("{parsed:#?}")) 
 }
 
 // layer 4
@@ -91,7 +99,9 @@ pub async fn test_net_connection(host: String) -> Result<String, String> {
         "Test-NetConnection -ComputerName '{}' -Port 443 | ConvertTo-Json -Depth 4",
         host
     );
-    run_powershell(&script)
+    let output = run_powershell(&script)?;
+    let parsed = windows_parser::parse_test_net_connection(&output);
+    Ok(format!("{parsed:#?}"))
 }
 
 // layer 7
@@ -103,7 +113,9 @@ pub async fn resolve_dns_name(host: String) -> Result<String, String> {
         "Resolve-DnsName -Name '{}' | ConvertTo-Json -Depth 4",
         host
     );
-    run_powershell(&script)
+    let output = run_powershell(&script)?;
+    let parsed = windows_parser::parse_resolve_dns(&output);
+    Ok(format!("{parsed:#?}"))
 }
 
 // can fetch HTTP resources?
@@ -111,11 +123,16 @@ pub async fn resolve_dns_name(host: String) -> Result<String, String> {
 #[tauri::command]
 pub async fn invoke_web_request(url: String) -> Result<String, String> {
     let script = format!(
-        "(Invoke-WebRequest -Uri '{}' -UseBasicParsing)",
+        "$resp = Invoke-WebRequest -Uri '{}' -UseBasicParsing; \
+         [pscustomobject]@{{ StatusCode = $resp.StatusCode }} | ConvertTo-Json",
         url
     );
-    run_powershell(&script)
+
+   let output =  run_powershell(&script)?;
+   let parsed = windows_parser::parse_invoke_web_request(&output);
+   Ok(format!("{parsed:#?}"))
 }
+
 
 // layer 3 / 4 : path analysis
 // tracert
