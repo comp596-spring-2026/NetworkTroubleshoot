@@ -306,11 +306,15 @@ pub struct InvokeWebRequestRaw {
     pub StatusCode: u16,
 }
 
-pub fn parse_invoke_web_request(output: &str) -> Result<HttpStatus, String> {
+pub fn parse_invoke_web_request(
+    output: &str,
+    url: &str,
+) -> Result<HttpStatus, String> {
     let raw: InvokeWebRequestRaw =
         serde_json::from_str(output).map_err(|e| e.to_string())?;
 
     Ok(HttpStatus {
+        url: url.to_string(),
         status_code: Some(raw.StatusCode),
         is_successful: true,
     })
