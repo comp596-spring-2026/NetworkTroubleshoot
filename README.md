@@ -1,89 +1,154 @@
 # Network Troubleshooter
-A Cross-Platform, GUI based network troubleshooter with layer-by-layer fault identification and explainable and easy to understand diagnostics.
 
-## The Problem
-- Normal Users cannot interpret logs and outputs.
-- The tools are fragmented.
-- Existing tools require tinkering with CLI.
+A cross-platform, GUI-based network troubleshooter that performs layer-by-layer diagnostics and provides clear, human-readable explanations of network issues.
 
-## Proposed Solution
-Building a structured, cross-platform diagnostics tools that compiles fragmented tools and produces human readable summaries and suggests fixes with minimal technical noise.
+---
+
+## Overview
+
+Modern network troubleshooting tools are fragmented and often require command-line knowledge. This project combines multiple system-level tools into a single application that:
+
+- Runs diagnostics across OSI layers
+- Normalizes outputs across platforms
+- Provides simple explanations instead of raw logs
+
+---
+
+## Problem
+
+- Non-technical users cannot interpret CLI outputs
+- Troubleshooting requires multiple disconnected tools
+- Existing tools expose raw data without clear explanations
+
+---
+
+## Solution
+
+This project collects networking data from native OS tools, parses and normalizes the output, and presents:
+
+- Structured results
+- Clear diagnostic summaries
+- Actionable suggestions with minimal technical noise
+
+---
 
 ## Tech Stack
-- Rust (For Cross Compactibility and Minimal / None Runtime Error)
-- Powershell Cmdlets and Native CLI tools
-- Tauri (For Graphical User Interface)
-- VirtualBox / VMWare (For virtualization)
-- GNS3 (For Network Simulation)
+
+- Rust – core diagnostics engine
+- Tauri – desktop GUI
+- PowerShell / Native CLI tools – system data collection
+- VirtualBox / VMware – cross-platform testing
+
+---
 
 ## Target Audience
-- Non-Technical End Users
 
-## Secondary Audiences
-- IT Support / Junior Admins
-- Networking Students
+- Non-technical users troubleshooting connectivity issues
+- Junior IT / support engineers
+- Networking students
 
-## Implementation Summary 
-### Layer 1 - Physical Layer
-#### Goal : Is the NIC up / connected ? Wi-Fi SSID ?
-#### Windows :
-- Get-NetAdapter
-- InterfaceDescription
-- Netsh 
-#### Linux / MacOS :
-- ip link / ifconfig
-- ethtool
-- nmcli 
-- networksetup 
+---
 
-### Layer 2 - Data Link Layer
-#### Goal : Is the local network reachable ? (MAC Address / ARP)
-#### Windows / Linux / MacOS :
-- arp => moved to 'ip neigh' :
-    - time arp = 0m7.667s
-    - time ip neigh = 0m0.007s & also provides better output
-- Get-NetNeighbor
+## Implementation Overview
 
-### Layer 3 - Network Layer
-#### Goal : is IP assigned ? Subnet ? Default route ? Gateway ? 
-#### Windows : 
-- Get-NetIPConfiguration
-- Get-NetRoute
-- Test-Connection
-#### Linux / MacOS :
-- ip addr / ifconfig 
-- ip route / route
-- ping
+### Layer 1 – Physical Layer
+**Goal:** Is the network interface up?
 
-### Layer 4 - Transport Layer
-#### Goal : TCP / UDP reachability ? Port Reachability ?
-#### Windows : 
-- Test-NetConnection
-#### Linux / MacOS :
-- nc (netcat)
-- curl
+- Windows: Get-NetAdapter
+- Linux: ip link, nmcli
 
-### Layer 5 - 6 : Session / Presentaion
-No special dedicated checks as it is mostly handled by application layer.
+---
 
-### Layer 7 : Application Layer
-#### Goal : Can DNS Resolve ? Can fetch HTTP(s) resource ?, etc
-#### Windows :
-- Resolve-DnsName
-- Invoke-WebRequest
-- netsh
-#### Linux / MacOS :
-- dig
-- scutil
-- curl
-- 'HTTP_PROXY' / 'HTTPS_PROXY' environment variables
+### Layer 2 – Data Link Layer
+**Goal:** Is the local network reachable?
 
-## Implementation Checklist
-- Phase 0 - Project Skeleton / Requirements
-- Phase 1 - Core Collectors (Link State, IP, Route, Neighbor / ARP )
-- Phase 2 - Connectivity Checks
-- Phase 3 - Diagnostics Engine and Rules
-- Phase 4 - GUI
-- Phase 5 - Evaluation / Polishing 
+- Windows: Get-NetNeighbor
+- Linux: ip neigh
 
+---
 
+### Layer 3 – Network Layer
+**Goal:** Is IP configuration valid?
+
+- Windows: Get-NetIPConfiguration, Get-NetRoute, Test-Connection
+- Linux: ip addr, ip route, ping
+
+---
+
+### Layer 4 – Transport Layer
+**Goal:** Can TCP connections be established?
+
+- Windows: Test-NetConnection
+- Linux: nc (netcat)
+
+---
+
+### Layer 7 – Application Layer
+**Goal:** DNS + HTTP checks
+
+- Windows: Resolve-DnsName, Invoke-WebRequest
+- Linux: dig, curl
+
+---
+
+### Path Analysis
+**Goal:** Identify where connectivity breaks
+
+- Windows: tracert
+- Linux: traceroute
+
+---
+
+## Build & Run Instructions
+
+### Requirements
+- Rust (Cargo)
+- Node.js + npm
+- Tauri prerequisites
+- Linux tools: ip, ping, nc, dig, traceroute, nmcli
+- Windows: PowerShell, tracert
+
+---
+
+### Clone
+
+git clone <your-repo-url>
+cd network_troubleshooter
+
+---
+
+### Install
+
+npm install
+
+---
+
+### Run
+
+npm run tauri dev
+
+---
+
+### Build
+
+npm run tauri build
+
+---
+
+## Project Structure
+
+Command Execution → Raw Parsing → Normalized Models → Diagnostics Engine → UI
+
+---
+
+## Status
+
+- Parsing layer complete
+- Cross-platform support working
+- Diagnostics layer in progress
+
+---
+
+## Notes
+
+This tool focuses on clarity over completeness. It is designed to help users understand common networking issues without needing deep technical knowledge.
