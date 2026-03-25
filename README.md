@@ -124,19 +124,25 @@ cd network_troubleshooter
 
 ### Install
 
+```bash
 npm install
+```
 
 ---
 
 ### Run
 
+```bash
 npm run tauri dev
+```
 
 ---
 
 ### Build
 
+```bash
 npm run tauri build
+```
 
 ---
 
