@@ -138,5 +138,7 @@ pub async fn invoke_web_request(url: String) -> Result<String, String> {
 // tracert
 #[tauri::command]
 pub async fn tracert(host: String) -> Result<String, String> {
-    run_cmd("tracert", &[&host])
+    let output = run_cmd("tracert", &[&host])?;
+    let parsed = windows_parser::parse_tracert(&output, &host)?;
+    Ok(format!("{parsed:#?}"))
 }

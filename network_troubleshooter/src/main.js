@@ -288,8 +288,8 @@ function setupWindowsHandlers() {
     setOutput(tracertMsgEl, "Running...");
     try {
       const { url } = getArgs();
-      const finalUrl = url.includes("://") ? url : `https://${url}`;
-      setOutput(tracertMsgEl, await invoke("tracert", { url: finalUrl }));
+      const host = toHost(url);
+      setOutput(tracertMsgEl, await invoke("tracert", { host : host }));
     } catch (err) {
       setOutput(tracertMsgEl, `Error: ${err}`);
     }
