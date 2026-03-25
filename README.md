@@ -112,8 +112,13 @@ This project collects networking data from native OS tools, parses and normalize
 
 ### Clone
 
-git clone <your-repo-url>
+git clone 
 cd network_troubleshooter
+
+```bash
+git clone https://github.com/comp596-spring-2026/NetworkTroubleshoot.git
+cd network_troubleshooter
+```
 
 ---
 
