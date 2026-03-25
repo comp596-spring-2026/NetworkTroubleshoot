@@ -1,6 +1,7 @@
 // parser functions for windows commands
 
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use crate::models::{
     InterfaceStatus,
@@ -214,15 +215,9 @@ pub fn parse_test_connection(output: &str) -> Result<ReachabilityStatus, String>
 
 #[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
-pub struct IpAddressObjRaw {
-    pub IPAddressToString: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[allow(non_snake_case)]
 pub struct TestNetConnectionRaw {
     pub ComputerName: String,
-    pub RemoteAddress: Option<IpAddressObjRaw>,
+    pub RemoteAddress: Option<Value>,
     pub RemotePort: u16,
     pub TcpTestSucceeded: bool,
 }
