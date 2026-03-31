@@ -1,4 +1,5 @@
 mod models;
+mod diagnostic_engine;
 
 #[cfg(target_os = "linux")]
 mod linux;

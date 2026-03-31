@@ -1,6 +1,7 @@
 use std::{process::Command};
 
 use crate::linux_parser;
+use crate::diagnostic_engine;
 
 
 pub fn run_cmd(cmd: &str, args: &[&str]) -> Result<String, String> {
@@ -39,8 +40,13 @@ pub fn run_cmd(cmd: &str, args: &[&str]) -> Result<String, String> {
 #[tauri::command]
 pub async fn ip_link() -> Result<String, String> {
     let output = run_cmd("ip", &["-j", "link"])?;
-    let parsed = linux_parser::parse_ip_link(&output);
-    Ok(format!("{parsed:#?}"))
+    let parsed = linux_parser::parse_ip_link(&output)?;
+
+    let diagnostics = diagnostic_engine::scan_layer_one(&parsed);
+
+    Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    ))
 }
 
 // nmcli
