@@ -67,7 +67,7 @@ pub async fn ip_neigh() -> Result<String, String> {
     let output = run_cmd("ip", &["-j","neigh"])?;
     let parsed = linux_parser::parse_ip_neigh(&output)?;
     let diagnostics : Vec<DiagnosticMessage> = diagnostic_engine::scan_layer_two(&parsed);
-     Ok(format!(
+    Ok(format!(
         "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
     ))
 }
@@ -79,16 +79,22 @@ pub async fn ip_neigh() -> Result<String, String> {
 #[tauri::command]
 pub async fn ip_addr() -> Result<String,String> {
    let output =  run_cmd("ip", &["-j","addr"])?;
-   let parsed = linux_parser::parse_ip_addr(&output);
-   Ok(format!("{parsed:#?}"))
+   let parsed = linux_parser::parse_ip_addr(&output)?;
+   let diagnostics = diagnostic_engine::diagnose_ip_addr(&parsed);
+   Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    ))
 }
 
 // ip route 
 #[tauri::command]
 pub async fn ip_route() -> Result<String,String> {
     let output = run_cmd("ip", &["-j","route"])?;
-    let parsed = linux_parser::parse_ip_route(&output);
-    Ok(format!("{parsed:#?}"))
+    let parsed = linux_parser::parse_ip_route(&output)?;
+    let diagnostics = diagnostic_engine::diagnose_ip_route(&parsed);
+    Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    ))
 }
 
 // Layer 3 : Connectivity Test
@@ -97,8 +103,11 @@ pub async fn ip_route() -> Result<String,String> {
 #[tauri::command]
 pub async fn ping(ip : String) -> Result<String,String> {
     let output = run_cmd("ping" , &["-c","4", &ip])?;
-    let parsed = linux_parser::parse_ping(&output);
-    Ok(format!("{parsed:#?}"))
+    let parsed = linux_parser::parse_ping(&output)?;
+    let diagnostics = diagnostic_engine::diagnose_reachability_status(&parsed);
+    Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    ))
 }
 
 // Layer 4 : Transport / Port Reachability
