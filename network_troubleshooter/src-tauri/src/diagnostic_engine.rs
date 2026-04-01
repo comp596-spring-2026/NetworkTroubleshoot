@@ -1,6 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-use crate::models::InterfaceStatus;
+use crate::models::{
+    InterfaceStatus,
+    NeighborState,
+    InterfaceAddress,
+    RouteInfo,
+    ReachabilityStatus,};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum _ScanType {
@@ -73,3 +78,41 @@ pub fn scan_layer_one(outputs: &[InterfaceStatus]) -> Vec<DiagnosticMessage> {
 
     messages
 }
+
+pub fn scan_layer_two(neighbors: &[NeighborState]) -> Vec<DiagnosticMessage> {
+    let mut messages = Vec::new();
+
+    if neighbors.is_empty() {
+        messages.push(DiagnosticMessage {
+            layer: Layer::LayerTwo,
+            status: CheckStatus::Warning,
+            error_level: ErrorSeverity::Mid,
+            title: "Local Network".to_string(),
+            message: "No neighboring devices detected on the network.".to_string(),
+        });
+        return messages;
+    }
+
+    let any_reachable = neighbors.iter().any(|n| n.is_reachable);
+
+    if any_reachable {
+        messages.push(DiagnosticMessage {
+            layer: Layer::LayerTwo,
+            status: CheckStatus::Pass,
+            error_level: ErrorSeverity::None,
+            title: "Local Network".to_string(),
+            message: "Neighboring devices are reachable.".to_string(),
+        });
+    } else {
+        messages.push(DiagnosticMessage {
+            layer: Layer::LayerTwo,
+            status: CheckStatus::Fail,
+            error_level: ErrorSeverity::High,
+            title: "Local Network".to_string(),
+            message: "No reachable devices found on the local network.".to_string(),
+        });
+    }
+
+    messages
+}
+

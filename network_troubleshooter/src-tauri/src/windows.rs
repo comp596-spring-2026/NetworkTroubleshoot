@@ -47,7 +47,10 @@ fn run_powershell(script: &str) -> Result<String, String> {
 pub async fn link_state() -> Result<String, String> {
     let output = run_powershell("Get-NetAdapter | ConvertTo-Json -Depth 4")?;
     let parsed = windows_parser::parse_net_adapter(&output);
-    Ok(format!("{parsed:#?}")) 
+    let diagnostics = diagnostic_engine::scan_layer_one(&parsed);
+    Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    ))
 }
 
 // layer 2 : local network
@@ -56,7 +59,10 @@ pub async fn link_state() -> Result<String, String> {
 pub async fn get_neighbors() -> Result<String, String> {
     let output = run_powershell("Get-NetNeighbor | ConvertTo-Json -Depth 4")?;
     let parsed = windows_parser::parse_net_neighbor(&output);
-    Ok(format!("{parsed:#?}")) 
+    let diagnostics : Vec<DiagnosticMessage> = diagnostic_engine::scan_layer_two(&parsed);
+    Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    ))
 }
 
 // layer 3 : ip configuration
