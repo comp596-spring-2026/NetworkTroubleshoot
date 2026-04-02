@@ -1,6 +1,7 @@
 use std::process::Command;
 use crate::windows_parser;
 use crate::diagnostic_engine;
+use diagnostic_engine::DiagnosticMessage;
 
 fn run_cmd(cmd: &str, args: &[&str]) -> Result<String, String> {
     let out = Command::new(cmd)
@@ -47,7 +48,7 @@ fn run_powershell(script: &str) -> Result<String, String> {
 #[tauri::command]
 pub async fn link_state() -> Result<String, String> {
     let output = run_powershell("Get-NetAdapter | ConvertTo-Json -Depth 4")?;
-    let parsed = windows_parser::parse_net_adapter(&output);
+    let parsed = windows_parser::parse_net_adapter(&output)?;
     let diagnostics = diagnostic_engine::scan_layer_one(&parsed);
     Ok(format!(
         "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
@@ -59,7 +60,7 @@ pub async fn link_state() -> Result<String, String> {
 #[tauri::command]
 pub async fn get_neighbors() -> Result<String, String> {
     let output = run_powershell("Get-NetNeighbor | ConvertTo-Json -Depth 4")?;
-    let parsed = windows_parser::parse_net_neighbor(&output);
+    let parsed = windows_parser::parse_net_neighbor(&output)?;
     let diagnostics : Vec<DiagnosticMessage> = diagnostic_engine::scan_layer_two(&parsed);
     Ok(format!(
         "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
@@ -165,7 +166,7 @@ pub async fn invoke_web_request(url: String) -> Result<String, String> {
 pub async fn tracert(host: String) -> Result<String, String> {
     let output = run_cmd("tracert", &[&host])?;
     let parsed = windows_parser::parse_tracert(&output, &host)?;
-    let diagnostics = diagnostic_engine::diagnose_http(&parsed);
+    let diagnostics = diagnostic_engine::diagnose_path(&parsed);
     Ok(format!(
         "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
     )) 
