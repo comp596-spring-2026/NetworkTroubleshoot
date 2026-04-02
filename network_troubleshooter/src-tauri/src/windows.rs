@@ -1,5 +1,6 @@
 use std::process::Command;
 use crate::windows_parser;
+use crate::diagnostic_engine;
 
 fn run_cmd(cmd: &str, args: &[&str]) -> Result<String, String> {
     let out = Command::new(cmd)
@@ -70,8 +71,11 @@ pub async fn get_neighbors() -> Result<String, String> {
 #[tauri::command]
 pub async fn get_ipconfig() -> Result<String, String> {
     let output = run_powershell("Get-NetIPConfiguration | ConvertTo-Json -Depth 6")?;
-    let parsed = windows_parser::parse_net_ip_config(&output);
-    Ok(format!("{parsed:#?}")) 
+    let parsed = windows_parser::parse_net_ip_config(&output)?;
+    let diagnostics = diagnostic_engine::diagnose_ip_addr(&parsed);
+    Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    )) 
 }
 
 // layer 3 : routing table
@@ -79,8 +83,11 @@ pub async fn get_ipconfig() -> Result<String, String> {
 #[tauri::command]
 pub async fn get_route() -> Result<String, String> {
     let output = run_powershell("Get-NetRoute | ConvertTo-Json -Depth 4")?;
-    let parsed = windows_parser::parse_net_route(&output);
-    Ok(format!("{parsed:#?}")) 
+    let parsed = windows_parser::parse_net_route(&output)?;
+    let diagnostics = diagnostic_engine::diagnose_ip_route(&parsed);
+    Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    )) 
 }
 
 // layer 3 : connectivity test
@@ -92,8 +99,11 @@ pub async fn test_connection(host: String) -> Result<String, String> {
         host
     );
     let output = run_powershell(&script)?;
-    let parsed = windows_parser::parse_test_connection(&output);
-    Ok(format!("{parsed:#?}")) 
+    let parsed = windows_parser::parse_test_connection(&output)?;
+    let diagnostics = diagnostic_engine::diagnose_reachability_status(&parsed);
+    Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    )) 
 }
 
 // layer 4
@@ -106,8 +116,11 @@ pub async fn test_net_connection(host: String) -> Result<String, String> {
         host
     );
     let output = run_powershell(&script)?;
-    let parsed = windows_parser::parse_test_net_connection(&output);
-    Ok(format!("{parsed:#?}"))
+    let parsed = windows_parser::parse_test_net_connection(&output)?;
+    let diagnostics = diagnostic_engine::scan_layer_four(&parsed);
+    Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    )) 
 }
 
 // layer 7
@@ -120,8 +133,11 @@ pub async fn resolve_dns_name(host: String) -> Result<String, String> {
         host
     );
     let output = run_powershell(&script)?;
-    let parsed = windows_parser::parse_resolve_dns(&output);
-    Ok(format!("{parsed:#?}"))
+    let parsed = windows_parser::parse_resolve_dns(&output)?;
+    let diagnostics = diagnostic_engine::diagnose_dns(&parsed);
+    Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    )) 
 }
 
 // can fetch HTTP resources?
@@ -135,8 +151,11 @@ pub async fn invoke_web_request(url: String) -> Result<String, String> {
     );
 
    let output =  run_powershell(&script)?;
-   let parsed = windows_parser::parse_invoke_web_request(&output,&url);
-   Ok(format!("{parsed:#?}"))
+   let parsed = windows_parser::parse_invoke_web_request(&output,&url)?;
+   let diagnostics = diagnostic_engine::diagnose_http(&parsed);
+    Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    )) 
 }
 
 
@@ -146,5 +165,8 @@ pub async fn invoke_web_request(url: String) -> Result<String, String> {
 pub async fn tracert(host: String) -> Result<String, String> {
     let output = run_cmd("tracert", &[&host])?;
     let parsed = windows_parser::parse_tracert(&output, &host)?;
-    Ok(format!("{parsed:#?}"))
+    let diagnostics = diagnostic_engine::diagnose_http(&parsed);
+    Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    )) 
 }

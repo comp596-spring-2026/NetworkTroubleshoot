@@ -6,7 +6,11 @@ use crate::models::{
     NeighborState,
     InterfaceAddress,
     RouteInfo,
-    ReachabilityStatus,};
+    ReachabilityStatus,
+    TcpStatus,
+    HttpStatus,
+    DnsStatus,
+    TraceStatus};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum _ScanType {
@@ -239,4 +243,155 @@ pub fn diagnose_ip_route(output: &[RouteInfo]) -> DiagnosticMessage {
         title: "Default Gateway".to_string(),
         message: "No default gateway was found.".to_string(),
     }
+}
+
+// combined function
+pub fn scan_layer_three(
+    addr_output: &[InterfaceAddress],
+    route_output: &[RouteInfo],
+    reachability_output: Option<&ReachabilityStatus>,
+) -> Vec<DiagnosticMessage> {
+    let mut messages = Vec::new();
+
+    messages.push(diagnose_ip_addr(addr_output));
+    messages.push(diagnose_ip_route(route_output));
+
+    if let Some(reachability) = reachability_output {
+        messages.push(diagnose_reachability_status(reachability));
+    }
+
+    messages
+}
+
+// layer four - netcat
+pub fn scan_layer_four(output: &TcpStatus) -> DiagnosticMessage {
+    if !output.is_successful {
+        return DiagnosticMessage { 
+            layer: Layer::LayerFour, 
+            status: CheckStatus::Fail, 
+            error_level: ErrorSeverity::Mid, 
+            title: "TCP Reachability".to_string(), 
+            message: format!(
+                "{} connection to the destination failed.",
+                output.protocol
+            ),
+        };
+    }
+
+    DiagnosticMessage { 
+        layer: Layer::LayerFour, 
+        status: CheckStatus::Pass, 
+        error_level: ErrorSeverity::None, 
+        title: "TCP Reachability".to_string(), 
+        message: format!(
+            "{} connection to the destination was successful.",
+            output.protocol
+        ),
+    }
+}
+
+// layer seven - application layer
+pub fn diagnose_http(output: &HttpStatus) -> DiagnosticMessage {
+    match output.status_code {
+        None => DiagnosticMessage {
+            layer: Layer::LayerSeven,
+            status: CheckStatus::Fail,
+            error_level: ErrorSeverity::High,
+            title: "HTTP Response".to_string(),
+            message: "No HTTP response was received.".to_string(),
+        },
+
+        Some(code) if (200..=399).contains(&code) => DiagnosticMessage {
+            layer: Layer::LayerSeven,
+            status: CheckStatus::Pass,
+            error_level: ErrorSeverity::None,
+            title: "HTTP Response".to_string(),
+            message: format!("HTTP response successful ({code})."),
+        },
+
+        Some(code) if (400..=499).contains(&code) => DiagnosticMessage {
+            layer: Layer::LayerSeven,
+            status: CheckStatus::Warning,
+            error_level: ErrorSeverity::Mid,
+            title: "HTTP Response".to_string(),
+            message: format!("HTTP response received, but returned a client error ({code})."),
+        },
+
+        Some(code) if (500..=599).contains(&code) => DiagnosticMessage {
+            layer: Layer::LayerSeven,
+            status: CheckStatus::Fail,
+            error_level: ErrorSeverity::High,
+            title: "HTTP Response".to_string(),
+            message: format!("HTTP response received, but the server returned an error ({code})."),
+        },
+
+        Some(code) => DiagnosticMessage {
+            layer: Layer::LayerSeven,
+            status: CheckStatus::Warning,
+            error_level: ErrorSeverity::Low,
+            title: "HTTP Response".to_string(),
+            message: format!("HTTP response received with uncommon status code ({code})."),
+        },
+    }
+}
+
+// application layer - layer 7 - dns resolution
+pub fn diagnose_dns(output: &DnsStatus) -> DiagnosticMessage {
+    if !output.is_successful {
+        let reason = output
+            .failure_reason
+            .as_deref()
+            .unwrap_or("Unknown DNS error");
+
+        return DiagnosticMessage { 
+            layer: Layer::LayerSeven, 
+            status: CheckStatus::Fail, 
+            error_level: ErrorSeverity::High, 
+            title: "DNS Resolution".to_string(), 
+            message: format!("DNS resolution failed: {reason}."),
+        };
+    }
+
+    let resolved = if output.resolved_values.is_empty() {
+        "No addresses returned".to_string()
+    } else {
+        output.resolved_values.join(", ")
+    };
+
+    DiagnosticMessage { 
+        layer: Layer::LayerSeven, 
+        status: CheckStatus::Pass, 
+        error_level: ErrorSeverity::None, 
+        title: "DNS Resolution".to_string(), 
+        message: format!("DNS resolved successfully: {resolved}."),
+    }
+}
+
+// diagnose tracepath
+pub fn diagnose_path(output: &TraceStatus) -> DiagnosticMessage {
+    if !output.destination_reached && !output.hops.is_empty() {
+        return DiagnosticMessage { 
+            layer: Layer::LayerThree, 
+            status: CheckStatus::Warning, 
+            error_level: ErrorSeverity::Low, 
+            title: "Path Trace".to_string(), 
+            message: "Trace did not reach the destination, but part of the path was visible.".to_string(),
+        };
+    } else if !output.destination_reached && output.hops.is_empty() {
+        return DiagnosticMessage { 
+            layer: Layer::LayerThree, 
+            status: CheckStatus::Warning, 
+            error_level: ErrorSeverity::Mid, 
+            title: "Path Trace".to_string(), 
+            message: "Unable to trace a route to the destination.".to_string(),
+        };
+    } else {
+        return DiagnosticMessage { 
+            layer: Layer::LayerThree, 
+            status: CheckStatus::Pass, 
+            error_level: ErrorSeverity::None, 
+            title: "Path Trace".to_string(), 
+            message: "Route to destination was traced successfully.".to_string(),
+        };
+    };
 }

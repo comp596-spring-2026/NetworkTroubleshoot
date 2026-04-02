@@ -42,6 +42,7 @@ pub fn run() {
             linux::traceroute,
             linux::ip_addr,
             linux::ip_route, 
+            linux::run_layer_three_scan,
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

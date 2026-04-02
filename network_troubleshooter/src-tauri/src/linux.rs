@@ -110,14 +110,39 @@ pub async fn ping(ip : String) -> Result<String,String> {
     ))
 }
 
+// combined layer three scan
+
+#[tauri::command]
+pub async fn run_layer_three_scan(host: String) -> Result<String, String> {
+    let addr_output = run_cmd("ip", &["-j", "addr"])?;
+    let addr_data = linux_parser::parse_ip_addr(&addr_output)?;
+
+    let route_output = run_cmd("ip", &["-j", "route"])?;
+    let route_data = linux_parser::parse_ip_route(&route_output)?;
+
+    let ping_output = run_cmd("ping", &["-c", "4", &host])?;
+    let ping_data = linux_parser::parse_ping(&ping_output)?;
+
+    let diagnostics = diagnostic_engine::scan_layer_three(
+        &addr_data,
+        &route_data,
+        Some(&ping_data),
+    );
+
+    Ok(format!("{diagnostics:#?}"))
+}
+
 // Layer 4 : Transport / Port Reachability
 
 // nc
 #[tauri::command]
 pub async fn netcat(host: String) -> Result<String,String> {
    let output =  run_cmd("nc", &["-zv", &host, "443"])?;
-   let parsed = linux_parser::parse_netcat(&output);
-   Ok(format!("{parsed:#?}"))
+   let parsed = linux_parser::parse_netcat(&output)?;
+   let diagnostics = diagnostic_engine::scan_layer_four(&parsed);
+   Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    ))
 }
 
 
@@ -127,8 +152,11 @@ pub async fn netcat(host: String) -> Result<String,String> {
 #[tauri::command]
 pub async fn curl(url : String) -> Result<String,String> {
     let output = run_cmd("curl", &["-I", &url])?;
-    let parsed = linux_parser::parse_curl(&output,&url);
-    Ok(format!("{parsed:#?}"))
+    let parsed = linux_parser::parse_curl(&output,&url)?;
+    let diagnostics = diagnostic_engine::diagnose_http(&parsed);
+    Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    ))
 }
 
 // Layer 7 : DNS Resolution
@@ -137,8 +165,11 @@ pub async fn curl(url : String) -> Result<String,String> {
 #[tauri::command]
 pub async fn dig(host : String) -> Result<String,String> {
     let output = run_cmd("dig", &[&host , "+yaml"])?;
-    let parsed = linux_parser::parse_dig(&output);
-    Ok(format!("{parsed:#?}"))
+    let parsed = linux_parser::parse_dig(&output)?;
+    let diagnostics = diagnostic_engine::diagnose_dns(&parsed);
+    Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    ))
 }
 
 // Layer 3 / 4 : Path Analysis
@@ -148,7 +179,8 @@ pub async fn dig(host : String) -> Result<String,String> {
 pub async fn traceroute(host: String) -> Result<String, String> {
     let output = run_cmd("traceroute", &[&host])?;
     let parsed = linux_parser::parse_traceroute(&output, &host)?;
-    Ok(format!("{parsed:#?}"))
+    let diagnostics = diagnostic_engine::diagnose_path(&parsed);
+    Ok(format!("{diagnostics:#?}"))
 }
 
 
