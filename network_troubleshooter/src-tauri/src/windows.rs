@@ -171,3 +171,77 @@ pub async fn tracert(host: String) -> Result<String, String> {
         "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
     )) 
 }
+
+// combined command
+#[tauri::command]
+pub async fn run_full_diagnostics(
+    host: String,
+    url: String,
+) -> Result<Vec<DiagnosticMessage>, String> {
+    let mut diagnostics: Vec<DiagnosticMessage> = Vec::new();
+
+    // Layer 1
+    let link_state_output = run_powershell("Get-NetAdapter | ConvertTo-Json -Depth 4")?;
+    let link_state_data = windows_parser::parse_net_adapter(&link_state_output)?;
+    diagnostics.extend(diagnostic_engine::scan_layer_one(&link_state_data));
+
+    // Layer 2
+    let neighbors_output = run_powershell("Get-NetNeighbor | ConvertTo-Json -Depth 4")?;
+    let neighbors_data = windows_parser::parse_net_neighbor(&neighbors_output)?;
+    diagnostics.extend(diagnostic_engine::scan_layer_two(&neighbors_data));
+
+    // Layer 3
+    let ipconfig_output = run_powershell("Get-NetIPConfiguration | ConvertTo-Json -Depth 6")?;
+    let ipconfig_data = windows_parser::parse_net_ip_config(&ipconfig_output)?;
+
+    let route_output = run_powershell("Get-NetRoute | ConvertTo-Json -Depth 4")?;
+    let route_data = windows_parser::parse_net_route(&route_output)?;
+
+    let ping_script = format!(
+        "Test-Connection -ComputerName '{}' -Count 4 | ConvertTo-Json -Depth 4",
+        host
+    );
+    let ping_output = run_powershell(&ping_script)?;
+    let ping_data = windows_parser::parse_test_connection(&ping_output)?;
+
+    diagnostics.extend(diagnostic_engine::scan_layer_three(
+        &ipconfig_data,
+        &route_data,
+        Some(&ping_data),
+    ));
+
+    // Layer 4
+    let net_script = format!(
+        "Test-NetConnection -ComputerName '{}' -Port 443 | ConvertTo-Json -Depth 4",
+        host
+    );
+    let net_output = run_powershell(&net_script)?;
+    let net_data = windows_parser::parse_test_net_connection(&net_output)?;
+    diagnostics.push(diagnostic_engine::scan_layer_four(&net_data));
+
+    // Layer 7 - DNS
+    let dns_script = format!(
+        "Resolve-DnsName -Name '{}' | ConvertTo-Json -Depth 4",
+        host
+    );
+    let dns_output = run_powershell(&dns_script)?;
+    let dns_data = windows_parser::parse_resolve_dns(&dns_output)?;
+    diagnostics.push(diagnostic_engine::diagnose_dns(&dns_data));
+
+    // Layer 7 - HTTP
+    let web_script = format!(
+        "$resp = Invoke-WebRequest -Uri '{}' -UseBasicParsing; \
+         [pscustomobject]@{{ StatusCode = $resp.StatusCode }} | ConvertTo-Json",
+        url
+    );
+    let web_output = run_powershell(&web_script)?;
+    let web_data = windows_parser::parse_invoke_web_request(&web_output, &url)?;
+    diagnostics.push(diagnostic_engine::diagnose_http(&web_data));
+
+    // Optional: path analysis
+    let tracert_output = run_cmd("tracert", &[&host])?;
+    let tracert_data = windows_parser::parse_tracert(&tracert_output, &host)?;
+    diagnostics.push(diagnostic_engine::diagnose_path(&tracert_data));
+
+    Ok(diagnostics)
+}

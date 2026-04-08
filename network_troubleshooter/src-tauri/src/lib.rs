@@ -42,7 +42,7 @@ pub fn run() {
             linux::traceroute,
             linux::ip_addr,
             linux::ip_route, 
-            linux::run_layer_three_scan,
+            linux::run_full_diagnostics,
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -64,6 +64,7 @@ pub fn run() {
             windows::test_connection,
             windows::test_net_connection,
             windows::tracert, 
+            windows::run_full_diagnostics,
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

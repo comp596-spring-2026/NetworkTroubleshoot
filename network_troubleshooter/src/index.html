@@ -2,135 +2,156 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="stylesheet" href="styles.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Network Troubleshooter</title>
+    <link rel="stylesheet" href="styles.css" />
     <script type="module" src="/main.js" defer></script>
   </head>
 
   <body>
-    <main class="container">
-      <h1>Network Troubleshooter</h1>
+    <main class="app-shell">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">Cross-Platform Diagnostic Tool</p>
+          <h1>Test My Network</h1>
+          <p class="subtitle">
+            Run a full scan and see where the problem appears across the OSI model.
+          </p>
+        </div>
+        <div class="input-actions">
+  <button type="button" onclick="window.location.href='advanced.html'">
+    Advanced View
+  </button>
+  <p id="scan-helper" class="helper-text">
+  </p>
+</div>
+      </header>
 
-      <div>
-        <form class="row" id="url-form">
-          <input id="dest-url" placeholder="example.com or https://example.com" />
-        </form>
+      <section class="input-panel">
+        <h2>Quick Scan</h2>
+        <p class="section-text">
+          Enter a host and URL for the diagnostic test.
+        </p>
 
-        <br />
+        <div class="input-grid">
+          <div class="input-group">
+            <label for="target-host">Host</label>
+            <input
+              id="target-host"
+              type="text"
+              placeholder="8.8.8.8"
+            />
+          </div>
 
-        <form class="row" id="ip-add-form">
-          <input id="dest-ip-add" placeholder="8.8.8.8" />
-        </form>
+          <div class="input-group">
+            <label for="target-url">URL</label>
+            <input
+              id="target-url"
+              type="text"
+              placeholder="https://example.com"
+            />
+          </div>
+        </div>
 
-        <br />
+        <div class="input-actions">
+          <button id="run-scan-btn" type="button">Test My Network</button>
+          <p id="scan-helper" class="helper-text">
+            Runs a full diagnostic scan.
+          </p>
+        </div>
+      </section>
 
-        <button id="submitBtn">Submit</button>
-      </div>
+      <section class="platform-panel">
+        <div class="panel-header">
+          <h2>Overall Result</h2>
+          <p class="section-text">Summary of the scan.</p>
+        </div>
 
-      <div id="linux">
-        <h2>Linux Commands</h2>
+        <article class="command-card status-warning" id="summary-card">
+          <div class="command-head">
+            <div>
+              <h3>Diagnostic Summary</h3>
+              <p id="summary-text">No scan has been run yet.</p>
+            </div>
+            <span class="status-chip warning" id="overall-status-chip">Idle</span>
+          </div>
+          <pre id="summary-output" class="output-box">Press "Test My Network" to begin.</pre>
+        </article>
+      </section>
 
-        <form class="row" id="run-ip-link">
-          <button type="submit">ip link</button>
-        </form>
-        <pre id="ip-link-output"></pre>
+      <section class="platform-panel">
+        <div class="panel-header">
+          <h2>OSI Layer View</h2>
+          <p class="section-text">Results returned from the diagnostics engine.</p>
+        </div>
 
-        <form class="row" id="run-ip-addr">
-          <button type="submit">ip addr</button>
-        </form>
-        <pre id="ip-addr-output"></pre>
+        <div class="command-grid">
+          <article class="command-card status-warning" id="layer-1-card">
+            <div class="command-head">
+              <div>
+                <h3>Layer 1 · Physical</h3>
+                <p>Adapter and link state</p>
+              </div>
+              <span class="status-chip warning" id="layer-1-chip">Idle</span>
+            </div>
+            <pre id="layer-1-output" class="output-box">Waiting for scan results...</pre>
+          </article>
 
-        <form class="row" id="run-ip-route">
-          <button type="submit">ip route</button>
-        </form>
-        <pre id="ip-route-output"></pre>
+          <article class="command-card status-warning" id="layer-2-card">
+            <div class="command-head">
+              <div>
+                <h3>Layer 2 · Data Link</h3>
+                <p>Neighbor and local link reachability</p>
+              </div>
+              <span class="status-chip warning" id="layer-2-chip">Idle</span>
+            </div>
+            <pre id="layer-2-output" class="output-box">Waiting for scan results...</pre>
+          </article>
 
-        <form class="row" id="run-nmcli">
-          <button type="submit">nmcli</button>
-        </form>
-        <pre id="nmcli-output"></pre>
+          <article class="command-card status-warning" id="layer-3-card">
+            <div class="command-head">
+              <div>
+                <h3>Layer 3 · Network</h3>
+                <p>IP, route, gateway, ping</p>
+              </div>
+              <span class="status-chip warning" id="layer-3-chip">Idle</span>
+            </div>
+            <pre id="layer-3-output" class="output-box">Waiting for scan results...</pre>
+          </article>
 
-        <form class="row" id="run-ip-neigh">
-          <button type="submit">ip neigh</button>
-        </form>
-        <pre id="ip-neigh-output"></pre>
+          <article class="command-card status-warning" id="layer-4-card">
+            <div class="command-head">
+              <div>
+                <h3>Layer 4 · Transport</h3>
+                <p>Port and service reachability</p>
+              </div>
+              <span class="status-chip warning" id="layer-4-chip">Idle</span>
+            </div>
+            <pre id="layer-4-output" class="output-box">Waiting for scan results...</pre>
+          </article>
 
-        <form class="row" id="run-ping">
-          <button type="submit">ping</button>
-        </form>
-        <pre id="ping-output"></pre>
+          <article class="command-card status-warning" id="layer-7-card">
+            <div class="command-head">
+              <div>
+                <h3>Layer 7 · Application</h3>
+                <p>DNS and HTTP access</p>
+              </div>
+              <span class="status-chip warning" id="layer-7-chip">Idle</span>
+            </div>
+            <pre id="layer-7-output" class="output-box">Waiting for scan results...</pre>
+          </article>
 
-        <form class="row" id="run-netcat">
-          <button type="submit">netcat</button>
-        </form>
-        <pre id="netcat-output"></pre>
-
-        <form class="row" id="run-curl">
-          <button type="submit">curl</button>
-        </form>
-        <pre id="curl-output"></pre>
-
-        <form class="row" id="run-dig">
-          <button type="submit">dig</button>
-        </form>
-        <pre id="dig-output"></pre>
-
-        <form class="row" id="run-traceroute">
-          <button type="submit">traceroute</button>
-        </form>
-        <pre id="traceroute-output"></pre>
-      </div>
-
-      <div id="windows">
-        <h2>Windows Commands</h2>
-
-        <form class="row" id="run-link-state">
-          <button type="submit">Link State</button>
-        </form>
-        <pre id="link-state-output"></pre>
-
-        <form class="row" id="run-get-neighbors">
-          <button type="submit">Get Neighbors</button>
-        </form>
-        <pre id="neighbors-output"></pre>
-
-        <form class="row" id="run-get-ipconfig">
-          <button type="submit">IP Configuration</button>
-        </form>
-        <pre id="ipconfig-output"></pre>
-
-        <form class="row" id="run-get-route">
-          <button type="submit">Get Route</button>
-        </form>
-        <pre id="route-output"></pre>
-
-        <form class="row" id="run-test-connection">
-          <button type="submit">Test Connection</button>
-        </form>
-        <pre id="win-ping-output"></pre>
-
-        <form class="row" id="run-test-net-connection">
-          <button type="submit">Test Net Connection</button>
-        </form>
-        <pre id="net-connection-output"></pre>
-
-        <form class="row" id="run-resolve-dns">
-          <button type="submit">Resolve DNS</button>
-        </form>
-        <pre id="dns-output"></pre>
-
-        <form class="row" id="run-web-request">
-          <button type="submit">Web Request</button>
-        </form>
-        <pre id="web-output"></pre>
-
-        <form class="row" id="run-tracert">
-          <button type="submit">Tracert</button>
-        </form>
-        <pre id="tracert-output"></pre>
-
-      </div>
+          <article class="command-card" id="next-step-card">
+            <div class="command-head">
+              <div>
+                <h3>Suggested Next Step</h3>
+                <p id="next-step-text">Run a scan to get a suggested action.</p>
+              </div>
+            </div>
+            <pre id="next-step-output" class="output-box">The app will suggest what to check first.</pre>
+          </article>
+        </div>
+      </section>
     </main>
   </body>
 </html>

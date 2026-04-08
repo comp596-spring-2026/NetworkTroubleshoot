@@ -1,13 +1,20 @@
 const { invoke } = window.__TAURI__.core;
 
-const DEFAULT_URL = "example.com";
+const DEFAULT_URL = "google.com";
 const DEFAULT_IP = "8.8.8.8";
 
 let currentArgs = null;
 
 function readArgsFromInputsOrDefault() {
-  const urlInput = document.getElementById("dest-url")?.value.trim() || "";
-  const ipInput = document.getElementById("dest-ip-add")?.value.trim() || "";
+  const urlInput =
+    document.getElementById("dest-url")?.value.trim() ||
+    document.getElementById("target-url")?.value.trim() ||
+    "";
+
+  const ipInput =
+    document.getElementById("dest-ip-add")?.value.trim() ||
+    document.getElementById("target-host")?.value.trim() ||
+    "";
 
   return {
     url: urlInput || DEFAULT_URL,
@@ -29,6 +36,12 @@ function toHost(input) {
   } catch (_) {
     return s.replace(/^https?:\/\//, "").split("/")[0];
   }
+}
+
+function normalizeUrl(input) {
+  const s = (input || "").trim();
+  if (!s) return `https://${DEFAULT_URL}`;
+  return s.includes("://") ? s : `https://${s}`;
 }
 
 function hideAllPanels() {
@@ -154,7 +167,7 @@ function setupLinuxHandlers() {
     setOutput(curlMsgEl, "Running...");
     try {
       const { url } = getArgs();
-      setOutput(curlMsgEl, await invoke("curl", { url }));
+      setOutput(curlMsgEl, await invoke("curl", { url: normalizeUrl(url) }));
     } catch (err) {
       setOutput(curlMsgEl, `Error: ${err}`);
     }
@@ -276,8 +289,7 @@ function setupWindowsHandlers() {
     setOutput(webMsgEl, "Running...");
     try {
       const { url } = getArgs();
-      const finalUrl = url.includes("://") ? url : `https://${url}`;
-      setOutput(webMsgEl, await invoke("invoke_web_request", { url: finalUrl }));
+      setOutput(webMsgEl, await invoke("invoke_web_request", { url: normalizeUrl(url) }));
     } catch (err) {
       setOutput(webMsgEl, `Error: ${err}`);
     }
@@ -289,15 +301,208 @@ function setupWindowsHandlers() {
     try {
       const { url } = getArgs();
       const host = toHost(url);
-      setOutput(tracertMsgEl, await invoke("tracert", { host : host }));
+      setOutput(tracertMsgEl, await invoke("tracert", { host }));
     } catch (err) {
       setOutput(tracertMsgEl, `Error: ${err}`);
     }
   });
 }
 
+function normalizeStatus(status) {
+  const s = String(status || "").toLowerCase();
+  if (s.includes("fail")) return "error";
+  if (s.includes("warn")) return "warning";
+  return "healthy";
+}
+
+function setStatusChip(chipId, cardId, state, label) {
+  const chip = document.getElementById(chipId);
+  const card = document.getElementById(cardId);
+  if (!chip || !card) return;
+
+  chip.className = "status-chip";
+  card.classList.remove("status-healthy", "status-warning", "status-error");
+
+  if (state === "error") {
+    chip.classList.add("error");
+    chip.textContent = label || "Problem";
+    card.classList.add("status-error");
+  } else if (state === "warning") {
+    chip.classList.add("warning");
+    chip.textContent = label || "Attention";
+    card.classList.add("status-warning");
+  } else {
+    chip.classList.add("healthy");
+    chip.textContent = label || "Healthy";
+    card.classList.add("status-healthy");
+  }
+}
+
+function renderLayerDiagnostics(layerName, diagnostics) {
+  const layerMap = {
+    LayerOne: { output: "layer-1-output", chip: "layer-1-chip", card: "layer-1-card" },
+    LayerTwo: { output: "layer-2-output", chip: "layer-2-chip", card: "layer-2-card" },
+    LayerThree: { output: "layer-3-output", chip: "layer-3-chip", card: "layer-3-card" },
+    LayerFour: { output: "layer-4-output", chip: "layer-4-chip", card: "layer-4-card" },
+    LayerSeven: { output: "layer-7-output", chip: "layer-7-chip", card: "layer-7-card" },
+  };
+
+  const meta = layerMap[layerName];
+  if (!meta) return "healthy";
+
+  const outputEl = document.getElementById(meta.output);
+  if (!outputEl) return "healthy";
+
+  if (!diagnostics.length) {
+    outputEl.textContent = "No issues reported for this layer.";
+    setStatusChip(meta.chip, meta.card, "healthy", "Healthy");
+    return "healthy";
+  }
+
+  let worst = "healthy";
+
+  outputEl.textContent = diagnostics
+    .map((d) => {
+      const state = normalizeStatus(d.status);
+      if (state === "error") worst = "error";
+      else if (state === "warning" && worst !== "error") worst = "warning";
+
+      return `[${d.title}]\n${d.message}`;
+    })
+    .join("\n\n");
+
+  setStatusChip(
+    meta.chip,
+    meta.card,
+    worst,
+    worst === "error" ? "Problem" : worst === "warning" ? "Attention" : "Healthy"
+  );
+
+  return worst;
+}
+
+function setupFullDiagnosticsHandler() {
+  const runBtn = document.getElementById("run-scan-btn");
+  if (!runBtn) return;
+
+  runBtn.addEventListener("click", async () => {
+    const helper = document.getElementById("scan-helper");
+    const summaryText = document.getElementById("summary-text");
+    const summaryOutput = document.getElementById("summary-output");
+    const nextStepText = document.getElementById("next-step-text");
+    const nextStepOutput = document.getElementById("next-step-output");
+
+    currentArgs = readArgsFromInputsOrDefault();
+
+    const { url, ip_address } = getArgs();
+    const host = toHost(url) || ip_address;
+    const finalUrl = normalizeUrl(url);
+
+    runBtn.disabled = true;
+
+    if (helper) helper.textContent = "Running diagnostics...";
+    if (summaryText) summaryText.textContent = "Scan in progress...";
+    if (summaryOutput) {
+      summaryOutput.textContent = "Collecting results from the diagnostics engine...";
+    }
+
+    setStatusChip("overall-status-chip", "summary-card", "warning", "Running");
+
+    ["1", "2", "3", "4", "7"].forEach((n) => {
+      const out = document.getElementById(`layer-${n}-output`);
+      if (out) out.textContent = "Waiting for scan results...";
+      setStatusChip(`layer-${n}-chip`, `layer-${n}-card`, "warning", "Running");
+    });
+
+    if (nextStepText) nextStepText.textContent = "Scan in progress.";
+    if (nextStepOutput) nextStepOutput.textContent = "Collecting diagnostics...";
+
+    try {
+      const diagnostics = await invoke("run_full_diagnostics", {
+        host,
+        url: finalUrl,
+      });
+
+      const grouped = {
+        LayerOne: [],
+        LayerTwo: [],
+        LayerThree: [],
+        LayerFour: [],
+        LayerSeven: [],
+      };
+
+      for (const d of diagnostics) {
+        if (grouped[d.layer]) grouped[d.layer].push(d);
+      }
+
+      const states = [
+        renderLayerDiagnostics("LayerOne", grouped.LayerOne),
+        renderLayerDiagnostics("LayerTwo", grouped.LayerTwo),
+        renderLayerDiagnostics("LayerThree", grouped.LayerThree),
+        renderLayerDiagnostics("LayerFour", grouped.LayerFour),
+        renderLayerDiagnostics("LayerSeven", grouped.LayerSeven),
+      ];
+
+      let overall = "healthy";
+      if (states.includes("error")) overall = "error";
+      else if (states.includes("warning")) overall = "warning";
+
+      setStatusChip(
+        "overall-status-chip",
+        "summary-card",
+        overall,
+        overall === "error" ? "Problem" : overall === "warning" ? "Attention" : "Healthy"
+      );
+
+      if (overall === "error") {
+        if (summaryText) summaryText.textContent = "A network problem was detected.";
+        if (summaryOutput) {
+          summaryOutput.textContent = "At least one OSI layer reported a failure.";
+        }
+      } else if (overall === "warning") {
+        if (summaryText) summaryText.textContent = "The network may be partially working.";
+        if (summaryOutput) {
+          summaryOutput.textContent = "At least one OSI layer reported a warning.";
+        }
+      } else {
+        if (summaryText) summaryText.textContent = "Your network looks healthy.";
+        if (summaryOutput) {
+          summaryOutput.textContent = "No major problems were detected.";
+        }
+      }
+
+      const firstBad = diagnostics.find((d) => {
+        const s = normalizeStatus(d.status);
+        return s === "error" || s === "warning";
+      });
+
+      if (!firstBad) {
+        if (nextStepText) nextStepText.textContent = "No urgent next step needed.";
+        if (nextStepOutput) {
+          nextStepOutput.textContent = "The scan did not find a clear failure.";
+        }
+      } else {
+        if (nextStepText) nextStepText.textContent = `Focus on ${firstBad.title}.`;
+        if (nextStepOutput) nextStepOutput.textContent = firstBad.message;
+      }
+
+      if (helper) helper.textContent = "Scan complete.";
+    } catch (err) {
+      console.error("run_full_diagnostics failed:", err);
+      setStatusChip("overall-status-chip", "summary-card", "error", "Error");
+
+      if (summaryText) summaryText.textContent = "The scan could not complete.";
+      if (summaryOutput) summaryOutput.textContent = String(err);
+      if (helper) helper.textContent = "The scan failed.";
+    } finally {
+      runBtn.disabled = false;
+    }
+  });
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
   setupSharedInputs();
+  setupFullDiagnosticsHandler();
   hideAllPanels();
 
   try {

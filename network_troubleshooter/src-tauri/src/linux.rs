@@ -110,28 +110,6 @@ pub async fn ping(ip : String) -> Result<String,String> {
     ))
 }
 
-// combined layer three scan
-
-#[tauri::command]
-pub async fn run_layer_three_scan(host: String) -> Result<String, String> {
-    let addr_output = run_cmd("ip", &["-j", "addr"])?;
-    let addr_data = linux_parser::parse_ip_addr(&addr_output)?;
-
-    let route_output = run_cmd("ip", &["-j", "route"])?;
-    let route_data = linux_parser::parse_ip_route(&route_output)?;
-
-    let ping_output = run_cmd("ping", &["-c", "4", &host])?;
-    let ping_data = linux_parser::parse_ping(&ping_output)?;
-
-    let diagnostics = diagnostic_engine::scan_layer_three(
-        &addr_data,
-        &route_data,
-        Some(&ping_data),
-    );
-
-    Ok(format!("{diagnostics:#?}"))
-}
-
 // Layer 4 : Transport / Port Reachability
 
 // nc
@@ -180,7 +158,67 @@ pub async fn traceroute(host: String) -> Result<String, String> {
     let output = run_cmd("traceroute", &[&host])?;
     let parsed = linux_parser::parse_traceroute(&output, &host)?;
     let diagnostics = diagnostic_engine::diagnose_path(&parsed);
-    Ok(format!("{diagnostics:#?}"))
+    Ok(format!(
+        "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
+    ))
+}
+
+// combined function to call for diagnostics
+
+#[tauri::command]
+pub async fn run_full_diagnostics(
+    host: String,
+    url: String,
+) -> Result<Vec<DiagnosticMessage>, String> {
+    let mut diagnostics: Vec<DiagnosticMessage> = Vec::new();
+
+    // Layer 1
+    let ip_link_output = run_cmd("ip", &["-j", "link"])?;
+    let ip_link_data = linux_parser::parse_ip_link(&ip_link_output)?;
+    diagnostics.extend(diagnostic_engine::scan_layer_one(&ip_link_data));
+
+    // Layer 2
+    let ip_neigh_output = run_cmd("ip", &["-j", "neigh"])?;
+    let ip_neigh_data = linux_parser::parse_ip_neigh(&ip_neigh_output)?;
+    diagnostics.extend(diagnostic_engine::scan_layer_two(&ip_neigh_data));
+
+    // Layer 3
+    let ip_addr_output = run_cmd("ip", &["-j", "addr"])?;
+    let ip_addr_data = linux_parser::parse_ip_addr(&ip_addr_output)?;
+
+    let ip_route_output = run_cmd("ip", &["-j", "route"])?;
+    let ip_route_data = linux_parser::parse_ip_route(&ip_route_output)?;
+
+    let ping_output = run_cmd("ping", &["-c", "4", &host])?;
+    let ping_data = linux_parser::parse_ping(&ping_output)?;
+
+    diagnostics.extend(diagnostic_engine::scan_layer_three(
+        &ip_addr_data,
+        &ip_route_data,
+        Some(&ping_data),
+    ));
+
+    // Layer 4
+    let netcat_output = run_cmd("nc", &["-zv", &host, "443"])?;
+    let netcat_data = linux_parser::parse_netcat(&netcat_output)?;
+    diagnostics.push(diagnostic_engine::scan_layer_four(&netcat_data));
+
+    // Layer 7 - DNS
+    let dig_output = run_cmd("dig", &[&host, "+yaml"])?;
+    let dig_data = linux_parser::parse_dig(&dig_output)?;
+    diagnostics.push(diagnostic_engine::diagnose_dns(&dig_data));
+
+    // Layer 7 - HTTP
+    let curl_output = run_cmd("curl", &["-I", &url])?;
+    let curl_data = linux_parser::parse_curl(&curl_output, &url)?;
+    diagnostics.push(diagnostic_engine::diagnose_http(&curl_data));
+
+    // Optional: path analysis
+    let traceroute_output = run_cmd("traceroute", &[&host])?;
+    let traceroute_data = linux_parser::parse_traceroute(&traceroute_output, &host)?;
+    diagnostics.push(diagnostic_engine::diagnose_path(&traceroute_data));
+
+    Ok(diagnostics)
 }
 
 
