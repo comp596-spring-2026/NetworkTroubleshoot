@@ -192,7 +192,7 @@ pub async fn run_full_diagnostics(
 
     // Layer 3
     let ipconfig_output = run_powershell("Get-NetIPConfiguration | ConvertTo-Json -Depth 6")?;
-    let ipconfig_data = windows_parser::parse_net_ip_config(&ipconfig_output)?;
+    let ipconfig_data = windows_parser::parse_net_ip_address(&ipconfig_output)?;
 
     let route_output = run_powershell("Get-NetRoute | ConvertTo-Json -Depth 4")?;
     let route_data = windows_parser::parse_net_route(&route_output)?;
