@@ -70,7 +70,7 @@ This project collects networking data from native OS tools, parses and normalize
 ### Layer 3 – Network Layer
 **Goal:** Is IP configuration valid?
 
-- Windows: Get-NetIPConfiguration, Get-NetRoute, Test-Connection
+- Windows: Get-NetIPAddress, Get-NetRoute, Test-Connection
 - Linux: ip addr, ip route, ping
 
 ---
