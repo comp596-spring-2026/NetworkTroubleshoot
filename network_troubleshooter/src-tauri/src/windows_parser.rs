@@ -84,6 +84,22 @@ pub fn parse_net_neighbor(output: &str) -> Result<Vec<NeighborState>, String> {
 // ======================= Get-NetIPConfiguration =======================
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+enum OneOrMany<T> {
+    One(T),
+    Many(Vec<T>),
+}
+
+impl<T> OneOrMany<T> {
+    fn into_vec(self) -> Vec<T> {
+        match self {
+            OneOrMany::One(x) => vec![x],
+            OneOrMany::Many(xs) => xs,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 pub struct IPEntryRaw {
     pub IPAddress: Option<String>,
@@ -93,9 +109,10 @@ pub struct IPEntryRaw {
 #[allow(non_snake_case)]
 pub struct NetIPConfigurationRaw {
     pub InterfaceAlias: String,
-    pub IPv4Address: Option<Vec<IPEntryRaw>>,
-    pub IPv6Address: Option<Vec<IPEntryRaw>>,
+    pub IPv4Address: Option<OneOrMany<IPEntryRaw>>,
+    pub IPv6Address: Option<OneOrMany<IPEntryRaw>>,
 }
+
 
 pub fn parse_net_ip_config(output: &str) -> Result<Vec<InterfaceAddress>, String> {
     let raw: Vec<NetIPConfigurationRaw> = if output.trim_start().starts_with('[') {
@@ -112,9 +129,11 @@ pub fn parse_net_ip_config(output: &str) -> Result<Vec<InterfaceAddress>, String
             name: each.InterfaceAlias,
             ipv4: each
                 .IPv4Address
+                .map(|x| x.into_vec())
                 .and_then(|v| v.into_iter().find_map(|entry| entry.IPAddress)),
             ipv6: each
                 .IPv6Address
+                .map(|x| x.into_vec())
                 .and_then(|v| v.into_iter().find_map(|entry| entry.IPAddress)),
         })
         .collect();
