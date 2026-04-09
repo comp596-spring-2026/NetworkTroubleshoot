@@ -71,7 +71,7 @@ pub async fn get_neighbors() -> Result<String, String> {
 // Get-NetIPConfiguration
 #[tauri::command]
 pub async fn get_ipconfig() -> Result<String, String> {
-    let output = run_powershell("Get-NetIPConfiguration | ConvertTo-Json -Depth 6")?;
+    let output = run_powershell("Get-NetIPAddress | ConvertTo-Json -Depth 4")?;
     let parsed = windows_parser::parse_net_ip_config(&output)?;
     let diagnostics = diagnostic_engine::diagnose_ip_addr(&parsed);
     Ok(format!(

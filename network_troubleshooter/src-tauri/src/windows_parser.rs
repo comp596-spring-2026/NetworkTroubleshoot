@@ -81,64 +81,61 @@ pub fn parse_net_neighbor(output: &str) -> Result<Vec<NeighborState>, String> {
     Ok(parsed)
 }
 
-// ======================= Get-NetIPConfiguration =======================
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
-enum OneOrMany<T> {
-    One(T),
-    Many(Vec<T>),
-}
-
-impl<T> OneOrMany<T> {
-    fn into_vec(self) -> Vec<T> {
-        match self {
-            OneOrMany::One(x) => vec![x],
-            OneOrMany::Many(xs) => xs,
-        }
-    }
-}
+// ======================= Get-NetIPAddress =======================
 
 #[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
-pub struct IPEntryRaw {
-    pub IPAddress: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[allow(non_snake_case)]
-pub struct NetIPConfigurationRaw {
+pub struct NetIPAddressRaw {
     pub InterfaceAlias: String,
-    pub IPv4Address: Option<OneOrMany<IPEntryRaw>>,
-    pub IPv6Address: Option<OneOrMany<IPEntryRaw>>,
+    pub IPAddress: String,
+    pub AddressFamily: i32,
 }
 
-
-pub fn parse_net_ip_config(output: &str) -> Result<Vec<InterfaceAddress>, String> {
-    let raw: Vec<NetIPConfigurationRaw> = if output.trim_start().starts_with('[') {
+pub fn parse_net_ip_address(output: &str) -> Result<Vec<InterfaceAddress>, String> {
+    let raw: Vec<NetIPAddressRaw> = if output.trim_start().starts_with('[') {
         serde_json::from_str(output).map_err(|e| e.to_string())?
     } else {
-        let single: NetIPConfigurationRaw =
+        let single: NetIPAddressRaw =
             serde_json::from_str(output).map_err(|e| e.to_string())?;
         vec![single]
     };
 
-    let parsed = raw
-        .into_iter()
-        .map(|each| InterfaceAddress {
-            name: each.InterfaceAlias,
-            ipv4: each
-                .IPv4Address
-                .map(|x| x.into_vec())
-                .and_then(|v| v.into_iter().find_map(|entry| entry.IPAddress)),
-            ipv6: each
-                .IPv6Address
-                .map(|x| x.into_vec())
-                .and_then(|v| v.into_iter().find_map(|entry| entry.IPAddress)),
-        })
-        .collect();
+    let mut interfaces: Vec<InterfaceAddress> = Vec::new();
 
-    Ok(parsed)
+    for entry in raw {
+
+        if let Some(existing) = interfaces.iter_mut().find(|i| i.name == entry.InterfaceAlias) {
+            match entry.AddressFamily {
+                2 => {
+                    if existing.ipv4.is_none() {
+                        existing.ipv4 = Some(entry.IPAddress);
+                    }
+                }
+                23 => {
+                    if existing.ipv6.is_none() {
+                        existing.ipv6 = Some(entry.IPAddress);
+                    }
+                }
+                _ => {}
+            }
+        } else {
+            let mut iface = InterfaceAddress {
+                name: entry.InterfaceAlias,
+                ipv4: None,
+                ipv6: None,
+            };
+
+            match entry.AddressFamily {
+                2 => iface.ipv4 = Some(entry.IPAddress),
+                23 => iface.ipv6 = Some(entry.IPAddress),
+                _ => {}
+            }
+
+            interfaces.push(iface);
+        }
+    }
+
+    Ok(interfaces)
 }
 
 // ======================= Get-NetRoute =======================
