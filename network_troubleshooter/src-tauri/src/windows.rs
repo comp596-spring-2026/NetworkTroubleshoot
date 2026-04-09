@@ -68,7 +68,7 @@ pub async fn get_neighbors() -> Result<String, String> {
 }
 
 // layer 3 : ip configuration
-// Get-NetIPConfiguration
+// Get-NetIPAddress
 #[tauri::command]
 pub async fn get_ipconfig() -> Result<String, String> {
     let output = run_powershell("Get-NetIPAddress | ConvertTo-Json -Depth 4")?;
@@ -191,7 +191,7 @@ pub async fn run_full_diagnostics(
     diagnostics.extend(diagnostic_engine::scan_layer_two(&neighbors_data));
 
     // Layer 3
-    let ipconfig_output = run_powershell("Get-NetIPConfiguration | ConvertTo-Json -Depth 6")?;
+    let ipconfig_output = run_powershell("Get-NetIPAddress | ConvertTo-Json -Depth 4")?;
     let ipconfig_data = windows_parser::parse_net_ip_address(&ipconfig_output)?;
 
     let route_output = run_powershell("Get-NetRoute | ConvertTo-Json -Depth 4")?;
