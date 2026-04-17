@@ -1,6 +1,6 @@
 use std::{process::Command};
 
-use crate::diagnostic_engine::DiagnosticMessage;
+use crate::diagnostic_engine::{DiagnosticMessage,ErrorSeverity,Layer,CheckStatus};
 use crate::linux_parser;
 use crate::diagnostic_engine;
 
@@ -173,52 +173,218 @@ pub async fn run_full_diagnostics(
     let mut diagnostics: Vec<DiagnosticMessage> = Vec::new();
 
     // Layer 1
-    let ip_link_output = run_cmd("ip", &["-j", "link"])?;
-    let ip_link_data = linux_parser::parse_ip_link(&ip_link_output)?;
-    diagnostics.extend(diagnostic_engine::scan_layer_one(&ip_link_data));
+    match run_cmd("ip", &["-j", "link"]) {
+        Ok(output) => match linux_parser::parse_ip_link(&output) {
+            Ok(data) => diagnostics.extend(diagnostic_engine::scan_layer_one(&data)),
+            Err(e) => diagnostics.push(DiagnosticMessage {
+                layer: Layer::LayerOne,
+                status: CheckStatus::Fail,
+                error_level: ErrorSeverity::High,
+                title: "Physical Connection".to_string(),
+                message: format!("Could not interpret interface status. {e}"),
+            }),
+        },
+        Err(e) => diagnostics.push(DiagnosticMessage {
+            layer: Layer::LayerOne,
+            status: CheckStatus::Fail,
+            error_level: ErrorSeverity::High,
+            title: "Physical Connection".to_string(),
+            message: format!("Could not retrieve interface status. {e}"),
+        }),
+    }
 
     // Layer 2
-    let ip_neigh_output = run_cmd("ip", &["-j", "neigh"])?;
-    let ip_neigh_data = linux_parser::parse_ip_neigh(&ip_neigh_output)?;
-    diagnostics.extend(diagnostic_engine::scan_layer_two(&ip_neigh_data));
+    match run_cmd("ip", &["-j", "neigh"]) {
+        Ok(output) => match linux_parser::parse_ip_neigh(&output) {
+            Ok(data) => diagnostics.extend(diagnostic_engine::scan_layer_two(&data)),
+            Err(e) => diagnostics.push(DiagnosticMessage {
+                layer: Layer::LayerTwo,
+                status: CheckStatus::Warning,
+                error_level: ErrorSeverity::Mid,
+                title: "Local Network".to_string(),
+                message: format!("Could not interpret neighbor information. {e}"),
+            }),
+        },
+        Err(e) => diagnostics.push(DiagnosticMessage {
+            layer: Layer::LayerTwo,
+            status: CheckStatus::Warning,
+            error_level: ErrorSeverity::Mid,
+            title: "Local Network".to_string(),
+            message: format!("Could not retrieve neighbor information. {e}"),
+        }),
+    }
 
-    // Layer 3
-    let ip_addr_output = run_cmd("ip", &["-j", "addr"])?;
-    let ip_addr_data = linux_parser::parse_ip_addr(&ip_addr_output)?;
+    // Layer 3 inputs
+    let ip_addr_data = match run_cmd("ip", &["-j", "addr"]) {
+        Ok(output) => match linux_parser::parse_ip_addr(&output) {
+            Ok(data) => Some(data),
+            Err(e) => {
+                diagnostics.push(DiagnosticMessage {
+                    layer: Layer::LayerThree,
+                    status: CheckStatus::Fail,
+                    error_level: ErrorSeverity::High,
+                    title: "IP Address".to_string(),
+                    message: format!("Could not interpret IP configuration. {e}"),
+                });
+                None
+            }
+        },
+        Err(e) => {
+            diagnostics.push(DiagnosticMessage {
+                layer: Layer::LayerThree,
+                status: CheckStatus::Fail,
+                error_level: ErrorSeverity::High,
+                title: "IP Address".to_string(),
+                message: format!("Could not retrieve IP configuration. {e}"),
+            });
+            None
+        }
+    };
 
-    let ip_route_output = run_cmd("ip", &["-j", "route"])?;
-    let ip_route_data = linux_parser::parse_ip_route(&ip_route_output)?;
+    let ip_route_data = match run_cmd("ip", &["-j", "route"]) {
+        Ok(output) => match linux_parser::parse_ip_route(&output) {
+            Ok(data) => Some(data),
+            Err(e) => {
+                diagnostics.push(DiagnosticMessage {
+                    layer: Layer::LayerThree,
+                    status: CheckStatus::Fail,
+                    error_level: ErrorSeverity::High,
+                    title: "Default Gateway".to_string(),
+                    message: format!("Could not interpret routing information. {e}"),
+                });
+                None
+            }
+        },
+        Err(e) => {
+            diagnostics.push(DiagnosticMessage {
+                layer: Layer::LayerThree,
+                status: CheckStatus::Fail,
+                error_level: ErrorSeverity::High,
+                title: "Default Gateway".to_string(),
+                message: format!("Could not retrieve routing information. {e}"),
+            });
+            None
+        }
+    };
 
-    let ping_output = run_cmd("ping", &["-c", "4", &host])?;
-    let ping_data = linux_parser::parse_ping(&ping_output)?;
+    let ping_data = match run_cmd("ping", &["-c", "4", &host]) {
+        Ok(output) => match linux_parser::parse_ping(&output) {
+            Ok(data) => Some(data),
+            Err(e) => {
+                diagnostics.push(DiagnosticMessage {
+                    layer: Layer::LayerThree,
+                    status: CheckStatus::Fail,
+                    error_level: ErrorSeverity::High,
+                    title: "Internet Reachability".to_string(),
+                    message: format!("Could not interpret reachability test results. {e}"),
+                });
+                None
+            }
+        },
+        Err(e) => {
+            diagnostics.push(DiagnosticMessage {
+                layer: Layer::LayerThree,
+                status: CheckStatus::Fail,
+                error_level: ErrorSeverity::High,
+                title: "Internet Reachability".to_string(),
+                message: "The reachability test could not be completed. This may happen when the host cannot be resolved, the network is disconnected, or outbound connectivity is unavailable.".to_string(),
+            });
+            eprintln!("ping failed: {e}");
+            None
+        }
+    };
 
-    diagnostics.extend(diagnostic_engine::scan_layer_three(
-        &ip_addr_data,
-        &ip_route_data,
-        Some(&ping_data),
-    ));
+    if let (Some(ip_addr_data), Some(ip_route_data)) = (ip_addr_data.as_ref(), ip_route_data.as_ref()) {
+        diagnostics.extend(diagnostic_engine::scan_layer_three(
+            ip_addr_data,
+            ip_route_data,
+            ping_data.as_ref(),
+        ));
+    }
 
     // Layer 4
-    let netcat_output = run_cmd("nc", &["-zv", &host, "443"])?;
-    let netcat_data = linux_parser::parse_netcat(&netcat_output)?;
-    diagnostics.push(diagnostic_engine::scan_layer_four(&netcat_data));
+    match run_cmd("nc", &["-zv", &host, "443"]) {
+        Ok(output) => match linux_parser::parse_netcat(&output) {
+            Ok(data) => diagnostics.push(diagnostic_engine::scan_layer_four(&data)),
+            Err(e) => diagnostics.push(DiagnosticMessage {
+                layer: Layer::LayerFour,
+                status: CheckStatus::Fail,
+                error_level: ErrorSeverity::Mid,
+                title: "TCP Reachability".to_string(),
+                message: format!("Could not interpret TCP connectivity results. {e}"),
+            }),
+        },
+        Err(e) => diagnostics.push(DiagnosticMessage {
+            layer: Layer::LayerFour,
+            status: CheckStatus::Fail,
+            error_level: ErrorSeverity::Mid,
+            title: "TCP Reachability".to_string(),
+            message: format!("Could not complete the TCP connectivity test. {e}"),
+        }),
+    }
 
     // Layer 7 - DNS
-    let dig_output = run_cmd("dig", &[&host, "+yaml"])?;
-    let dig_data = linux_parser::parse_dig(&dig_output)?;
-    diagnostics.push(diagnostic_engine::diagnose_dns(&dig_data));
+    match run_cmd("dig", &[&host, "+yaml"]) {
+        Ok(output) => match linux_parser::parse_dig(&output) {
+            Ok(data) => diagnostics.push(diagnostic_engine::diagnose_dns(&data)),
+            Err(e) => diagnostics.push(DiagnosticMessage {
+                layer: Layer::LayerSeven,
+                status: CheckStatus::Fail,
+                error_level: ErrorSeverity::High,
+                title: "DNS Resolution".to_string(),
+                message: format!("Could not interpret DNS results. {e}"),
+            }),
+        },
+        Err(e) => diagnostics.push(DiagnosticMessage {
+            layer: Layer::LayerSeven,
+            status: CheckStatus::Fail,
+            error_level: ErrorSeverity::High,
+            title: "DNS Resolution".to_string(),
+            message: format!("DNS lookup could not be completed. {e}"),
+        }),
+    }
 
     // Layer 7 - HTTP
-    let curl_output = run_cmd("curl", &["-I", &url])?;
-    let curl_data = linux_parser::parse_curl(&curl_output, &url)?;
-    diagnostics.push(diagnostic_engine::diagnose_http(&curl_data));
+    match run_cmd("curl", &["-I", &url]) {
+        Ok(output) => match linux_parser::parse_curl(&output, &url) {
+            Ok(data) => diagnostics.push(diagnostic_engine::diagnose_http(&data)),
+            Err(e) => diagnostics.push(DiagnosticMessage {
+                layer: Layer::LayerSeven,
+                status: CheckStatus::Fail,
+                error_level: ErrorSeverity::High,
+                title: "HTTP Response".to_string(),
+                message: format!("Could not interpret HTTP test results. {e}"),
+            }),
+        },
+        Err(e) => diagnostics.push(DiagnosticMessage {
+            layer: Layer::LayerSeven,
+            status: CheckStatus::Fail,
+            error_level: ErrorSeverity::High,
+            title: "HTTP Response".to_string(),
+            message: format!("HTTP test could not be completed. {e}"),
+        }),
+    }
 
     // Optional: path analysis
-    let traceroute_output = run_cmd("traceroute", &[&host])?;
-    let traceroute_data = linux_parser::parse_traceroute(&traceroute_output, &host)?;
-    diagnostics.push(diagnostic_engine::diagnose_path(&traceroute_data));
+    match run_cmd("traceroute", &[&host]) {
+        Ok(output) => match linux_parser::parse_traceroute(&output, &host) {
+            Ok(data) => diagnostics.push(diagnostic_engine::diagnose_path(&data)),
+            Err(e) => diagnostics.push(DiagnosticMessage {
+                layer: Layer::LayerThree,
+                status: CheckStatus::Warning,
+                error_level: ErrorSeverity::Low,
+                title: "Path Trace".to_string(),
+                message: format!("Could not interpret path trace results. {e}"),
+            }),
+        },
+        Err(e) => diagnostics.push(DiagnosticMessage {
+            layer: Layer::LayerThree,
+            status: CheckStatus::Warning,
+            error_level: ErrorSeverity::Low,
+            title: "Path Trace".to_string(),
+            message: format!("Path trace could not be completed. {e}"),
+        }),
+    }
 
     Ok(diagnostics)
 }
-
-
