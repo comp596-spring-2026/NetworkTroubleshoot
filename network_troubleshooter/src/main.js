@@ -338,38 +338,355 @@ function setStatusChip(chipId, cardId, state, label) {
   }
 }
 
+function getExpandedExplanation(diagnostic) {
+  const title = String(diagnostic?.title || "").toLowerCase();
+  const message = String(diagnostic?.message || "").toLowerCase();
+  const status = String(diagnostic?.status || "").toLowerCase();
+
+  if (title.includes("physical connection") && status.includes("fail")) {
+    return {
+      meaning:
+        "The system could not find an active Ethernet or Wi-Fi interface that appears usable.",
+      likelyCause:
+        "The adapter may be disabled, unplugged, disconnected from Wi-Fi, or not recognized properly by the operating system.",
+      nextStep:
+        "Check whether Wi-Fi is connected or whether the Ethernet cable is firmly plugged in. If needed, verify that the network adapter is enabled."
+    };
+  }
+
+  if (title.includes("physical connection") && status.includes("pass")) {
+    return {
+      meaning:
+        "The system found at least one active network interface.",
+      likelyCause:
+        "Basic physical connectivity appears available at the adapter level.",
+      nextStep:
+        "If a problem still exists, move to Layer 2 and Layer 3 results to see whether the issue is with local network access, IP configuration, or routing."
+    };
+  }
+
+  if (title.includes("local network") && status.includes("fail")) {
+    return {
+      meaning:
+        "The device did not detect any reachable neighboring devices on the local network.",
+      likelyCause:
+        "This can happen if the device is isolated from the network, connected to the wrong network, or unable to communicate properly on the local link.",
+      nextStep:
+        "Check whether the device is connected to the correct network and whether the router or nearby hosts are reachable."
+    };
+  }
+
+  if (title.includes("local network") && status.includes("warning")) {
+    return {
+      meaning:
+        "No neighboring devices were detected, but this does not always prove a failure by itself.",
+      likelyCause:
+        "Some networks may have little recent local traffic, or neighbor information may simply not be populated yet.",
+      nextStep:
+        "If other layers also show problems, treat this as supporting evidence of a local connectivity issue."
+    };
+  }
+
+  if (title.includes("local network") && status.includes("pass")) {
+    return {
+      meaning:
+        "The device can see or reach neighboring systems on the local network.",
+      likelyCause:
+        "Local link communication appears to be functioning.",
+      nextStep:
+        "If internet access still fails, focus on IP addressing, default gateway, DNS, or remote connectivity."
+    };
+  }
+
+  if (title.includes("ip address") && message.includes("apipa")) {
+    return {
+      meaning:
+        "The system assigned itself a fallback address in the 169.254.x.x range instead of receiving a normal network address.",
+      likelyCause:
+        "This usually means DHCP failed, so the device could not get valid configuration from the router or DHCP server.",
+      nextStep:
+        "Reconnect the network, check whether the router is responding, and try renewing the DHCP lease once that feature is added."
+    };
+  }
+
+  if (title.includes("ip address") && message.includes("no ip")) {
+    return {
+      meaning:
+        "The device does not currently have a usable IP address on an active network interface.",
+      likelyCause:
+        "This often happens when DHCP fails, the interface is disconnected, or the connection process did not complete successfully.",
+      nextStep:
+        "Check the adapter connection first. If the link is active, the next likely area to inspect is DHCP or manual IP configuration."
+    };
+  }
+
+  if (title.includes("ip address") && message.includes("no usable network interface")) {
+    return {
+      meaning:
+        "The system could not find a non-loopback interface suitable for normal network communication.",
+      likelyCause:
+        "The network adapter may be disabled, missing, disconnected, or not detected properly.",
+      nextStep:
+        "Verify that a real network adapter is available and active before troubleshooting higher layers."
+    };
+  }
+
+  if (title.includes("ip address") && status.includes("pass")) {
+    return {
+      meaning:
+        "A usable IP address is assigned to at least one active interface.",
+      likelyCause:
+        "Basic network addressing appears to be configured correctly.",
+      nextStep:
+        "If connectivity still fails, check the default gateway, internet reachability, or DNS results."
+    };
+  }
+
+  if (title.includes("default gateway") && status.includes("fail")) {
+    return {
+      meaning:
+        "The system does not have a route that directs traffic outside the local network.",
+      likelyCause:
+        "Gateway information may be missing because DHCP did not complete properly or because routing was configured incorrectly.",
+      nextStep:
+        "Without a default gateway, internet access usually will not work. Check DHCP or network settings and verify that the router is available."
+    };
+  }
+
+  if (title.includes("default gateway") && status.includes("pass")) {
+    return {
+      meaning:
+        "A default gateway is present, so the system knows where to send traffic outside the local subnet.",
+      likelyCause:
+        "Routing appears basically correct at this level.",
+      nextStep:
+        "If the internet is still unreachable, inspect reachability, DNS, and HTTP results."
+    };
+  }
+
+  if (title.includes("internet reachability") && status.includes("fail")) {
+    return {
+      meaning:
+        "The device could not reliably reach the target host, or packet loss was severe enough to indicate failure.",
+      likelyCause:
+        "Possible causes include loss of internet access, an unreachable gateway, unstable Wi-Fi, firewall rules, or a target that is blocked or unavailable.",
+      nextStep:
+        "Check IP address and default gateway results first. If those are healthy, the issue may be farther upstream or specific to the destination."
+    };
+  }
+
+  if (title.includes("internet reachability") && status.includes("warning")) {
+    return {
+      meaning:
+        "The target was reachable, but network performance appears degraded.",
+      likelyCause:
+        "High latency can come from weak Wi-Fi, congestion, VPN overhead, or upstream network problems.",
+      nextStep:
+        "Try the test again, compare results on another network if possible, and check whether the issue is temporary or persistent."
+    };
+  }
+
+  if (title.includes("internet reachability") && status.includes("pass")) {
+    return {
+      meaning:
+        "The target was reachable and the measured response looked reasonable.",
+      likelyCause:
+        "Basic network reachability appears healthy at this stage.",
+      nextStep:
+        "If a web service still fails, the issue may be at the transport or application layer rather than general connectivity."
+    };
+  }
+
+  if (title.includes("path trace") && status.includes("warning")) {
+    return {
+      meaning:
+        "The route to the destination was incomplete or only partially visible.",
+      likelyCause:
+        "Some routers may ignore trace probes, or the destination may be unreachable somewhere along the path.",
+      nextStep:
+        "Treat this as supporting information rather than proof by itself. Compare it with gateway, ping, and DNS results."
+    };
+  }
+
+  if (title.includes("path trace") && status.includes("pass")) {
+    return {
+      meaning:
+        "The route to the destination could be traced successfully.",
+      likelyCause:
+        "Path visibility suggests that traffic can move through the network toward the target.",
+      nextStep:
+        "If application access still fails, focus on service-level checks such as TCP, DNS, or HTTP."
+    };
+  }
+
+  if (title.includes("tcp reachability") && status.includes("fail")) {
+    return {
+      meaning:
+        "A direct connection to the destination service could not be established.",
+      likelyCause:
+        "The host may be unreachable, the service may not be running, the target port may be closed, or a firewall may be blocking access.",
+      nextStep:
+        "Check whether general connectivity works first. If it does, the failure may be specific to the service or destination port."
+    };
+  }
+
+  if (title.includes("tcp reachability") && status.includes("pass")) {
+    return {
+      meaning:
+        "A direct service-level connection to the destination succeeded.",
+      likelyCause:
+        "Transport-level connectivity appears to be working for the tested service.",
+      nextStep:
+        "If a user-facing problem remains, check higher-level issues such as DNS, HTTP response, authentication, or application-specific errors."
+    };
+  }
+
+  if (title.includes("dns resolution") && status.includes("fail")) {
+    return {
+      meaning:
+        "The system could not translate the domain name into an IP address.",
+      likelyCause:
+        "DNS may be unavailable, misconfigured, blocked, or temporarily failing. It is also possible that the domain itself is invalid or unavailable.",
+      nextStep:
+        "Try another domain to see whether the problem affects all lookups. If general connectivity is healthy, DNS settings may need attention."
+    };
+  }
+
+  if (title.includes("dns resolution") && status.includes("pass")) {
+    return {
+      meaning:
+        "The domain name was resolved successfully into one or more IP addresses.",
+      likelyCause:
+        "DNS functionality appears to be working for this lookup.",
+      nextStep:
+        "If the website still does not load, focus on HTTP response, service availability, or destination-specific issues."
+    };
+  }
+
+  if (title.includes("http response") && status.includes("fail")) {
+    return {
+      meaning:
+        "The target did not return a usable HTTP response.",
+      likelyCause:
+        "The site may be down, blocked, unreachable, or failing before an HTTP status could be returned.",
+      nextStep:
+        "Compare this with DNS and TCP results. If those are healthy, the problem may be specific to the web service itself."
+    };
+  }
+
+  if (title.includes("http response") && status.includes("warning")) {
+    return {
+      meaning:
+        "The server responded, but the response indicates a problem or unusual condition.",
+      likelyCause:
+        "A client error may mean the request or URL is invalid, while other unusual responses may indicate service-specific issues.",
+      nextStep:
+        "Check the exact HTTP status and determine whether the problem is with the server, the request path, or access restrictions."
+    };
+  }
+
+  if (title.includes("http response") && status.includes("pass")) {
+    return {
+      meaning:
+        "The web service returned a successful or expected HTTP response.",
+      likelyCause:
+        "Application-layer access appears to be working for this test.",
+      nextStep:
+        "If the user still reports a problem, it may be intermittent, application-specific, or outside the scope of this basic connectivity test."
+    };
+  }
+
+  return {
+    meaning:
+      "This result describes the condition detected for the selected network layer.",
+    likelyCause:
+      "The exact cause depends on the surrounding results from other layers and whether lower-level checks also failed.",
+    nextStep:
+      "Use this message together with the overall summary and nearby layer results to decide what to check next."
+  };
+}
+
+function buildExpandedExplanationText(diagnostic) {
+  const extra = getExpandedExplanation(diagnostic);
+  if (!extra) return "No additional explanation available.";
+
+  return [
+    `What this means: ${extra.meaning}`,
+    `Likely cause: ${extra.likelyCause}`,
+    `What to check next: ${extra.nextStep}`
+  ].join("\n\n");
+}
+
 function renderLayerDiagnostics(layerName, diagnostics) {
   const layerMap = {
-    LayerOne: { output: "layer-1-output", chip: "layer-1-chip", card: "layer-1-card" },
-    LayerTwo: { output: "layer-2-output", chip: "layer-2-chip", card: "layer-2-card" },
-    LayerThree: { output: "layer-3-output", chip: "layer-3-chip", card: "layer-3-card" },
-    LayerFour: { output: "layer-4-output", chip: "layer-4-chip", card: "layer-4-card" },
-    LayerSeven: { output: "layer-7-output", chip: "layer-7-chip", card: "layer-7-card" },
+    LayerOne: {
+      output: "layer-1-output",
+      chip: "layer-1-chip",
+      card: "layer-1-card",
+      explanation: "layer-1-explanation"
+    },
+    LayerTwo: {
+      output: "layer-2-output",
+      chip: "layer-2-chip",
+      card: "layer-2-card",
+      explanation: "layer-2-explanation"
+    },
+    LayerThree: {
+      output: "layer-3-output",
+      chip: "layer-3-chip",
+      card: "layer-3-card",
+      explanation: "layer-3-explanation"
+    },
+    LayerFour: {
+      output: "layer-4-output",
+      chip: "layer-4-chip",
+      card: "layer-4-card",
+      explanation: "layer-4-explanation"
+    },
+    LayerSeven: {
+      output: "layer-7-output",
+      chip: "layer-7-chip",
+      card: "layer-7-card",
+      explanation: "layer-7-explanation"
+    },
   };
 
   const meta = layerMap[layerName];
   if (!meta) return "healthy";
 
   const outputEl = document.getElementById(meta.output);
+  const explanationEl = document.getElementById(meta.explanation);
+
   if (!outputEl) return "healthy";
 
   if (!diagnostics.length) {
     outputEl.textContent = "No issues reported for this layer.";
+    if (explanationEl) {
+      explanationEl.textContent = "No further explanation is needed for this layer.";
+    }
     setStatusChip(meta.chip, meta.card, "healthy", "Healthy");
     return "healthy";
   }
 
   let worst = "healthy";
+  const outputParts = [];
+  const explanationParts = [];
 
-  outputEl.textContent = diagnostics
-    .map((d) => {
-      const state = normalizeStatus(d.status);
-      if (state === "error") worst = "error";
-      else if (state === "warning" && worst !== "error") worst = "warning";
+  for (const d of diagnostics) {
+    const state = normalizeStatus(d.status);
 
-      return `[${d.title}]\n${d.message}`;
-    })
-    .join("\n\n");
+    if (state === "error") worst = "error";
+    else if (state === "warning" && worst !== "error") worst = "warning";
+
+    outputParts.push(`[${d.title}]\n${d.message}`);
+    explanationParts.push(`[${d.title}]\n${buildExpandedExplanationText(d)}`);
+  }
+
+  outputEl.textContent = outputParts.join("\n\n");
+
+  if (explanationEl) {
+    explanationEl.textContent = explanationParts.join("\n\n");
+  }
 
   setStatusChip(
     meta.chip,
@@ -410,7 +727,11 @@ function setupFullDiagnosticsHandler() {
 
     ["1", "2", "3", "4", "7"].forEach((n) => {
       const out = document.getElementById(`layer-${n}-output`);
+      const explanation = document.getElementById(`layer-${n}-explanation`);
+
       if (out) out.textContent = "Waiting for scan results...";
+      if (explanation) explanation.textContent = "Detailed explanation will appear here after the scan.";
+
       setStatusChip(`layer-${n}-chip`, `layer-${n}-card`, "warning", "Running");
     });
 
@@ -457,17 +778,20 @@ function setupFullDiagnosticsHandler() {
       if (overall === "error") {
         if (summaryText) summaryText.textContent = "A network problem was detected.";
         if (summaryOutput) {
-          summaryOutput.textContent = "At least one OSI layer reported a failure.";
+          summaryOutput.textContent =
+            "At least one OSI layer reported a failure. Review the layer cards below to see where the issue begins and what it likely means.";
         }
       } else if (overall === "warning") {
         if (summaryText) summaryText.textContent = "The network may be partially working.";
         if (summaryOutput) {
-          summaryOutput.textContent = "At least one OSI layer reported a warning.";
+          summaryOutput.textContent =
+            "At least one OSI layer reported a warning. The network may still function, but performance or reliability may be reduced.";
         }
       } else {
         if (summaryText) summaryText.textContent = "Your network looks healthy.";
         if (summaryOutput) {
-          summaryOutput.textContent = "No major problems were detected.";
+          summaryOutput.textContent =
+            "No major problems were detected in the tested layers. If a user still experiences issues, the problem may be intermittent or specific to a particular application or destination.";
         }
       }
 
@@ -479,11 +803,18 @@ function setupFullDiagnosticsHandler() {
       if (!firstBad) {
         if (nextStepText) nextStepText.textContent = "No urgent next step needed.";
         if (nextStepOutput) {
-          nextStepOutput.textContent = "The scan did not find a clear failure.";
+          nextStepOutput.textContent =
+            "The scan did not find a clear failure. If a problem still exists, try repeating the scan during the issue or testing a different destination.";
         }
       } else {
         if (nextStepText) nextStepText.textContent = `Focus on ${firstBad.title}.`;
-        if (nextStepOutput) nextStepOutput.textContent = firstBad.message;
+        if (nextStepOutput) {
+          nextStepOutput.textContent = [
+            firstBad.message,
+            "",
+            buildExpandedExplanationText(firstBad)
+          ].join("\n");
+        }
       }
 
       if (helper) helper.textContent = "Scan complete.";
