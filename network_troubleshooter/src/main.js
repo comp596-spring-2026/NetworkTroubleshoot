@@ -4,6 +4,70 @@ const DEFAULT_URL = "google.com";
 const DEFAULT_IP = "8.8.8.8";
 
 let currentArgs = null;
+let selectedLayer = "1";
+
+const LAYER_INFO = {
+  "1": {
+    key: "LayerOne",
+    title: "Layer 1 · Physical",
+    subtitle: "Adapter and link state",
+    chip: "layer-1-chip",
+    card: "layer-1-card",
+    summary: "layer-1-summary",
+    nextStep: "layer-1-next-step",
+    explanation: "layer-1-explanation-text",
+    output: "layer-1-output",
+    findings: "layer-1-findings",
+  },
+  "2": {
+    key: "LayerTwo",
+    title: "Layer 2 · Data Link",
+    subtitle: "Neighbor and local link reachability",
+    chip: "layer-2-chip",
+    card: "layer-2-card",
+    summary: "layer-2-summary",
+    nextStep: "layer-2-next-step",
+    explanation: "layer-2-explanation-text",
+    output: "layer-2-output",
+    findings: "layer-2-findings",
+  },
+  "3": {
+    key: "LayerThree",
+    title: "Layer 3 · Network",
+    subtitle: "IP, route, gateway, ping",
+    chip: "layer-3-chip",
+    card: "layer-3-card",
+    summary: "layer-3-summary",
+    nextStep: "layer-3-next-step",
+    explanation: "layer-3-explanation-text",
+    output: "layer-3-output",
+    findings: "layer-3-findings",
+  },
+  "4": {
+    key: "LayerFour",
+    title: "Layer 4 · Transport",
+    subtitle: "Port and service reachability",
+    chip: "layer-4-chip",
+    card: "layer-4-card",
+    summary: "layer-4-summary",
+    nextStep: "layer-4-next-step",
+    explanation: "layer-4-explanation-text",
+    output: "layer-4-output",
+    findings: "layer-4-findings",
+  },
+  "7": {
+    key: "LayerSeven",
+    title: "Layer 7 · Application",
+    subtitle: "DNS and HTTP access",
+    chip: "layer-7-chip",
+    card: "layer-7-card",
+    summary: "layer-7-summary",
+    nextStep: "layer-7-next-step",
+    explanation: "layer-7-explanation-text",
+    output: "layer-7-output",
+    findings: "layer-7-findings",
+  },
+};
 
 function readArgsFromInputsOrDefault() {
   const urlInput =
@@ -74,6 +138,24 @@ function setupSharedInputs() {
   submitBtn?.addEventListener("click", () => {
     currentArgs = readArgsFromInputsOrDefault();
     console.log("Saved target:", currentArgs);
+  });
+}
+
+function setupDetailsToggles() {
+  document.querySelectorAll(".details-toggle").forEach((button) => {
+    button.addEventListener("click", () => {
+      const targetId = button.dataset.target;
+      if (!targetId) return;
+
+      const details = document.getElementById(targetId);
+      if (!details) return;
+
+      const isHidden = details.classList.contains("hidden");
+
+      details.classList.toggle("hidden");
+      button.textContent = isHidden ? "Hide Raw Output" : "View Raw Output";
+      button.setAttribute("aria-expanded", isHidden ? "true" : "false");
+    });
   });
 }
 
@@ -350,7 +432,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "The adapter may be disabled, unplugged, disconnected from Wi-Fi, or not recognized properly by the operating system.",
       nextStep:
-        "Check whether Wi-Fi is connected or whether the Ethernet cable is firmly plugged in. If needed, verify that the network adapter is enabled."
+        "Check whether Wi-Fi is connected or whether the Ethernet cable is firmly plugged in. If needed, verify that the network adapter is enabled.",
     };
   }
 
@@ -361,7 +443,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "Basic physical connectivity appears available at the adapter level.",
       nextStep:
-        "If a problem still exists, move to Layer 2 and Layer 3 results to see whether the issue is with local network access, IP configuration, or routing."
+        "If a problem still exists, move to Layer 2 and Layer 3 results to see whether the issue is with local network access, IP configuration, or routing.",
     };
   }
 
@@ -372,7 +454,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "This can happen if the device is isolated from the network, connected to the wrong network, or unable to communicate properly on the local link.",
       nextStep:
-        "Check whether the device is connected to the correct network and whether the router or nearby hosts are reachable."
+        "Check whether the device is connected to the correct network and whether the router or nearby hosts are reachable.",
     };
   }
 
@@ -383,7 +465,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "Some networks may have little recent local traffic, or neighbor information may simply not be populated yet.",
       nextStep:
-        "If other layers also show problems, treat this as supporting evidence of a local connectivity issue."
+        "If other layers also show problems, treat this as supporting evidence of a local connectivity issue.",
     };
   }
 
@@ -394,7 +476,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "Local link communication appears to be functioning.",
       nextStep:
-        "If internet access still fails, focus on IP addressing, default gateway, DNS, or remote connectivity."
+        "If internet access still fails, focus on IP addressing, default gateway, DNS, or remote connectivity.",
     };
   }
 
@@ -405,7 +487,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "This usually means DHCP failed, so the device could not get valid configuration from the router or DHCP server.",
       nextStep:
-        "Reconnect the network, check whether the router is responding, and try renewing the DHCP lease once that feature is added."
+        "Reconnect the network, check whether the router is responding, and try renewing the DHCP lease once that feature is added.",
     };
   }
 
@@ -416,7 +498,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "This often happens when DHCP fails, the interface is disconnected, or the connection process did not complete successfully.",
       nextStep:
-        "Check the adapter connection first. If the link is active, the next likely area to inspect is DHCP or manual IP configuration."
+        "Check the adapter connection first. If the link is active, the next likely area to inspect is DHCP or manual IP configuration.",
     };
   }
 
@@ -427,7 +509,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "The network adapter may be disabled, missing, disconnected, or not detected properly.",
       nextStep:
-        "Verify that a real network adapter is available and active before troubleshooting higher layers."
+        "Verify that a real network adapter is available and active before troubleshooting higher layers.",
     };
   }
 
@@ -438,7 +520,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "Basic network addressing appears to be configured correctly.",
       nextStep:
-        "If connectivity still fails, check the default gateway, internet reachability, or DNS results."
+        "If connectivity still fails, check the default gateway, internet reachability, or DNS results.",
     };
   }
 
@@ -449,7 +531,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "Gateway information may be missing because DHCP did not complete properly or because routing was configured incorrectly.",
       nextStep:
-        "Without a default gateway, internet access usually will not work. Check DHCP or network settings and verify that the router is available."
+        "Without a default gateway, internet access usually will not work. Check DHCP or network settings and verify that the router is available.",
     };
   }
 
@@ -460,7 +542,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "Routing appears basically correct at this level.",
       nextStep:
-        "If the internet is still unreachable, inspect reachability, DNS, and HTTP results."
+        "If the internet is still unreachable, inspect reachability, DNS, and HTTP results.",
     };
   }
 
@@ -471,7 +553,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "Possible causes include loss of internet access, an unreachable gateway, unstable Wi-Fi, firewall rules, or a target that is blocked or unavailable.",
       nextStep:
-        "Check IP address and default gateway results first. If those are healthy, the issue may be farther upstream or specific to the destination."
+        "Check IP address and default gateway results first. If those are healthy, the issue may be farther upstream or specific to the destination.",
     };
   }
 
@@ -482,7 +564,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "High latency can come from weak Wi-Fi, congestion, VPN overhead, or upstream network problems.",
       nextStep:
-        "Try the test again, compare results on another network if possible, and check whether the issue is temporary or persistent."
+        "Try the test again, compare results on another network if possible, and check whether the issue is temporary or persistent.",
     };
   }
 
@@ -493,7 +575,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "Basic network reachability appears healthy at this stage.",
       nextStep:
-        "If a web service still fails, the issue may be at the transport or application layer rather than general connectivity."
+        "If a web service still fails, the issue may be at the transport or application layer rather than general connectivity.",
     };
   }
 
@@ -504,7 +586,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "Some routers may ignore trace probes, or the destination may be unreachable somewhere along the path.",
       nextStep:
-        "Treat this as supporting information rather than proof by itself. Compare it with gateway, ping, and DNS results."
+        "Treat this as supporting information rather than proof by itself. Compare it with gateway, ping, and DNS results.",
     };
   }
 
@@ -515,7 +597,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "Path visibility suggests that traffic can move through the network toward the target.",
       nextStep:
-        "If application access still fails, focus on service-level checks such as TCP, DNS, or HTTP."
+        "If application access still fails, focus on service-level checks such as TCP, DNS, or HTTP.",
     };
   }
 
@@ -526,7 +608,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "The host may be unreachable, the service may not be running, the target port may be closed, or a firewall may be blocking access.",
       nextStep:
-        "Check whether general connectivity works first. If it does, the failure may be specific to the service or destination port."
+        "Check whether general connectivity works first. If it does, the failure may be specific to the service or destination port.",
     };
   }
 
@@ -537,7 +619,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "Transport-level connectivity appears to be working for the tested service.",
       nextStep:
-        "If a user-facing problem remains, check higher-level issues such as DNS, HTTP response, authentication, or application-specific errors."
+        "If a user-facing problem remains, check higher-level issues such as DNS, HTTP response, authentication, or application-specific errors.",
     };
   }
 
@@ -548,7 +630,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "DNS may be unavailable, misconfigured, blocked, or temporarily failing. It is also possible that the domain itself is invalid or unavailable.",
       nextStep:
-        "Try another domain to see whether the problem affects all lookups. If general connectivity is healthy, DNS settings may need attention."
+        "Try another domain to see whether the problem affects all lookups. If general connectivity is healthy, DNS settings may need attention.",
     };
   }
 
@@ -559,7 +641,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "DNS functionality appears to be working for this lookup.",
       nextStep:
-        "If the website still does not load, focus on HTTP response, service availability, or destination-specific issues."
+        "If the website still does not load, focus on HTTP response, service availability, or destination-specific issues.",
     };
   }
 
@@ -570,7 +652,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "The site may be down, blocked, unreachable, or failing before an HTTP status could be returned.",
       nextStep:
-        "Compare this with DNS and TCP results. If those are healthy, the problem may be specific to the web service itself."
+        "Compare this with DNS and TCP results. If those are healthy, the problem may be specific to the web service itself.",
     };
   }
 
@@ -581,7 +663,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "A client error may mean the request or URL is invalid, while other unusual responses may indicate service-specific issues.",
       nextStep:
-        "Check the exact HTTP status and determine whether the problem is with the server, the request path, or access restrictions."
+        "Check the exact HTTP status and determine whether the problem is with the server, the request path, or access restrictions.",
     };
   }
 
@@ -592,7 +674,7 @@ function getExpandedExplanation(diagnostic) {
       likelyCause:
         "Application-layer access appears to be working for this test.",
       nextStep:
-        "If the user still reports a problem, it may be intermittent, application-specific, or outside the scope of this basic connectivity test."
+        "If the user still reports a problem, it may be intermittent, application-specific, or outside the scope of this basic connectivity test.",
     };
   }
 
@@ -602,7 +684,7 @@ function getExpandedExplanation(diagnostic) {
     likelyCause:
       "The exact cause depends on the surrounding results from other layers and whether lower-level checks also failed.",
     nextStep:
-      "Use this message together with the overall summary and nearby layer results to decide what to check next."
+      "Use this message together with the overall summary and nearby layer results to decide what to check next.",
   };
 }
 
@@ -613,64 +695,159 @@ function buildExpandedExplanationText(diagnostic) {
   return [
     `What this means: ${extra.meaning}`,
     `Likely cause: ${extra.likelyCause}`,
-    `What to check next: ${extra.nextStep}`
+    `What to check next: ${extra.nextStep}`,
   ].join("\n\n");
 }
 
+function buildFindingMarkup(diagnostic) {
+  const state = normalizeStatus(diagnostic?.status);
+  const extra = getExpandedExplanation(diagnostic);
+  const label =
+    state === "error" ? "Problem" : state === "warning" ? "Attention" : "Healthy";
+
+  return `
+    <div class="finding-item finding-${state}">
+      <div class="finding-head">
+        <span class="finding-title">${diagnostic.title}</span>
+        <span class="status-chip ${state}">${label}</span>
+      </div>
+      <p class="finding-meaning">${extra.meaning}</p>
+      <p class="finding-next-step"><strong>Next:</strong> ${extra.nextStep}</p>
+    </div>
+  `;
+}
+
+function buildIdleFindingMarkup() {
+  return `
+    <div class="finding-item finding-warning">
+      <div class="finding-head">
+        <span class="finding-title">Waiting for Results</span>
+        <span class="status-chip warning">Idle</span>
+      </div>
+      <p class="finding-meaning">
+        Run a scan to see detailed findings for the selected layer.
+      </p>
+      <p class="finding-next-step">
+        After the scan, this section will show healthy, warning, and problem findings with matching colors.
+      </p>
+    </div>
+  `;
+}
+
+function buildHealthyLayerMarkup() {
+  return `
+    <div class="finding-item finding-healthy">
+      <div class="finding-head">
+        <span class="finding-title">No Issues Reported</span>
+        <span class="status-chip healthy">Healthy</span>
+      </div>
+      <p class="finding-meaning">
+        No problems were reported for this layer.
+      </p>
+      <p class="finding-next-step">
+        No action is needed here right now.
+      </p>
+    </div>
+  `;
+}
+
+function syncActiveLayerPanel(layerNumber = selectedLayer) {
+  const info = LAYER_INFO[layerNumber];
+  if (!info) return;
+
+  selectedLayer = layerNumber;
+
+  document.querySelectorAll(".layer-list-item").forEach((button) => {
+    button.classList.toggle("active", button.dataset.layer === layerNumber);
+  });
+
+  const activeTitle = document.getElementById("active-layer-title");
+  const activeSubtitle = document.getElementById("active-layer-subtitle");
+  const activeChip = document.getElementById("active-layer-chip");
+  const activeNextStep = document.getElementById("active-layer-next-step");
+  const activeFindings = document.getElementById("active-layer-findings");
+  const activeOutput = document.getElementById("active-layer-output");
+
+  const sourceChip = document.getElementById(info.chip);
+  const sourceNextStep = document.getElementById(info.nextStep);
+  const sourceFindings = document.getElementById(info.findings);
+  const sourceOutput = document.getElementById(info.output);
+
+  if (activeTitle) activeTitle.textContent = info.title;
+  if (activeSubtitle) activeSubtitle.textContent = info.subtitle;
+
+  if (activeChip && sourceChip) {
+    activeChip.className = sourceChip.className;
+    activeChip.textContent = sourceChip.textContent;
+  }
+
+  if (activeNextStep && sourceNextStep) {
+    activeNextStep.textContent = sourceNextStep.textContent;
+  }
+
+  if (activeFindings) {
+    activeFindings.innerHTML = sourceFindings?.innerHTML || buildIdleFindingMarkup();
+  }
+
+  if (activeOutput) {
+    activeOutput.textContent = sourceOutput?.textContent || "No output yet.";
+  }
+}
+
+function setupLayerSelection() {
+  document.querySelectorAll(".layer-list-item").forEach((button) => {
+    button.addEventListener("click", () => {
+      const layer = button.dataset.layer;
+      if (!layer) return;
+      syncActiveLayerPanel(layer);
+    });
+  });
+}
+
 function renderLayerDiagnostics(layerName, diagnostics) {
-  const layerMap = {
-    LayerOne: {
-      output: "layer-1-output",
-      chip: "layer-1-chip",
-      card: "layer-1-card",
-      explanation: "layer-1-explanation"
-    },
-    LayerTwo: {
-      output: "layer-2-output",
-      chip: "layer-2-chip",
-      card: "layer-2-card",
-      explanation: "layer-2-explanation"
-    },
-    LayerThree: {
-      output: "layer-3-output",
-      chip: "layer-3-chip",
-      card: "layer-3-card",
-      explanation: "layer-3-explanation"
-    },
-    LayerFour: {
-      output: "layer-4-output",
-      chip: "layer-4-chip",
-      card: "layer-4-card",
-      explanation: "layer-4-explanation"
-    },
-    LayerSeven: {
-      output: "layer-7-output",
-      chip: "layer-7-chip",
-      card: "layer-7-card",
-      explanation: "layer-7-explanation"
-    },
-  };
+  const info = Object.values(LAYER_INFO).find((item) => item.key === layerName);
+  if (!info) return "healthy";
 
-  const meta = layerMap[layerName];
-  if (!meta) return "healthy";
-
-  const outputEl = document.getElementById(meta.output);
-  const explanationEl = document.getElementById(meta.explanation);
+  const outputEl = document.getElementById(info.output);
+  const explanationEl = document.getElementById(info.explanation);
+  const summaryEl = document.getElementById(info.summary);
+  const nextStepEl = document.getElementById(info.nextStep);
+  const findingsEl = document.getElementById(info.findings);
 
   if (!outputEl) return "healthy";
 
   if (!diagnostics.length) {
     outputEl.textContent = "No issues reported for this layer.";
+
     if (explanationEl) {
       explanationEl.textContent = "No further explanation is needed for this layer.";
     }
-    setStatusChip(meta.chip, meta.card, "healthy", "Healthy");
+
+    if (summaryEl) {
+      summaryEl.textContent = "No issues were reported for this layer.";
+    }
+
+    if (nextStepEl) {
+      nextStepEl.textContent = "No action needed for this layer.";
+    }
+
+    if (findingsEl) {
+      findingsEl.innerHTML = buildHealthyLayerMarkup();
+    }
+
+    setStatusChip(info.chip, info.card, "healthy", "Healthy");
+
+    if (selectedLayer === info.card.split("-")[1]) {
+      syncActiveLayerPanel(info.card.split("-")[1]);
+    }
+
     return "healthy";
   }
 
   let worst = "healthy";
   const outputParts = [];
   const explanationParts = [];
+  const findingParts = [];
 
   for (const d of diagnostics) {
     const state = normalizeStatus(d.status);
@@ -680,6 +857,7 @@ function renderLayerDiagnostics(layerName, diagnostics) {
 
     outputParts.push(`[${d.title}]\n${d.message}`);
     explanationParts.push(`[${d.title}]\n${buildExpandedExplanationText(d)}`);
+    findingParts.push(buildFindingMarkup(d));
   }
 
   outputEl.textContent = outputParts.join("\n\n");
@@ -688,14 +866,57 @@ function renderLayerDiagnostics(layerName, diagnostics) {
     explanationEl.textContent = explanationParts.join("\n\n");
   }
 
+  if (findingsEl) {
+    findingsEl.innerHTML = findingParts.join("");
+  }
+
+  const firstDiagnostic = diagnostics[0];
+  const firstExtra = getExpandedExplanation(firstDiagnostic);
+
+  if (summaryEl) {
+    summaryEl.textContent =
+      firstDiagnostic?.message || "Diagnostic information is available for this layer.";
+  }
+
+  if (nextStepEl) {
+    nextStepEl.textContent =
+      firstExtra?.nextStep || "Review the detailed explanation for this layer.";
+  }
+
   setStatusChip(
-    meta.chip,
-    meta.card,
+    info.chip,
+    info.card,
     worst,
     worst === "error" ? "Problem" : worst === "warning" ? "Attention" : "Healthy"
   );
 
+  if (selectedLayer === info.card.split("-")[1]) {
+    syncActiveLayerPanel(info.card.split("-")[1]);
+  }
+
   return worst;
+}
+
+function resetQuickScanLayerState() {
+  Object.entries(LAYER_INFO).forEach(([layerNumber, info]) => {
+    const out = document.getElementById(info.output);
+    const explanation = document.getElementById(info.explanation);
+    const summary = document.getElementById(info.summary);
+    const nextStep = document.getElementById(info.nextStep);
+    const findings = document.getElementById(info.findings);
+
+    if (out) out.textContent = "Waiting for scan results...";
+    if (explanation) {
+      explanation.textContent = "Detailed explanation will appear here after the scan.";
+    }
+    if (summary) summary.textContent = "Waiting for scan results...";
+    if (nextStep) nextStep.textContent = "Run a scan to get a suggested action.";
+    if (findings) findings.innerHTML = buildIdleFindingMarkup();
+
+    setStatusChip(info.chip, info.card, "warning", "Running");
+  });
+
+  syncActiveLayerPanel(selectedLayer);
 }
 
 function setupFullDiagnosticsHandler() {
@@ -724,16 +945,7 @@ function setupFullDiagnosticsHandler() {
     }
 
     setStatusChip("overall-status-chip", "summary-card", "warning", "Running");
-
-    ["1", "2", "3", "4", "7"].forEach((n) => {
-      const out = document.getElementById(`layer-${n}-output`);
-      const explanation = document.getElementById(`layer-${n}-explanation`);
-
-      if (out) out.textContent = "Waiting for scan results...";
-      if (explanation) explanation.textContent = "Detailed explanation will appear here after the scan.";
-
-      setStatusChip(`layer-${n}-chip`, `layer-${n}-card`, "warning", "Running");
-    });
+    resetQuickScanLayerState();
 
     if (nextStepText) nextStepText.textContent = "Scan in progress.";
     if (nextStepOutput) nextStepOutput.textContent = "Collecting diagnostics...";
@@ -779,7 +991,7 @@ function setupFullDiagnosticsHandler() {
         if (summaryText) summaryText.textContent = "A network problem was detected.";
         if (summaryOutput) {
           summaryOutput.textContent =
-            "At least one OSI layer reported a failure. Review the layer cards below to see where the issue begins and what it likely means.";
+            "At least one OSI layer reported a failure. Review the layer list below to see where the issue begins and what it likely means.";
         }
       } else if (overall === "warning") {
         if (summaryText) summaryText.textContent = "The network may be partially working.";
@@ -812,10 +1024,12 @@ function setupFullDiagnosticsHandler() {
           nextStepOutput.textContent = [
             firstBad.message,
             "",
-            buildExpandedExplanationText(firstBad)
+            buildExpandedExplanationText(firstBad),
           ].join("\n");
         }
       }
+
+      syncActiveLayerPanel(selectedLayer);
 
       if (helper) helper.textContent = "Scan complete.";
     } catch (err) {
@@ -833,7 +1047,10 @@ function setupFullDiagnosticsHandler() {
 
 window.addEventListener("DOMContentLoaded", async () => {
   setupSharedInputs();
+  setupDetailsToggles();
+  setupLayerSelection();
   setupFullDiagnosticsHandler();
+  syncActiveLayerPanel(selectedLayer);
   hideAllPanels();
 
   try {
