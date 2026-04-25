@@ -157,6 +157,7 @@ Command Execution → Raw Parsing → Normalized Models → Diagnostics Engine �
 - Parsing layer complete
 - Cross-platform support working
 - Diagnostics layer complete
+- Solve My Network Partial Problem (ISSUE : permission issue with running commands to change interface status!)
 
 ---
 
