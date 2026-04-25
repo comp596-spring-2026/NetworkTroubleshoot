@@ -1,291 +1,427 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Network Troubleshooter</title>
-    <link rel="stylesheet" href="styles.css" />
-    <script type="module" src="/main.js" defer></script>
-  </head>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Network Troubleshooter</title>
+        <link rel="stylesheet" href="styles.css" />
+        <script type="module" src="/main.js" defer></script>
+    </head>
 
-  <body>
-    <main class="app-shell">
-      <header class="app-header">
-        <div>
-          <p class="eyebrow">Cross-Platform Diagnostic Tool</p>
-          <h1>Test My Network</h1>
-          <p class="subtitle">
-            Run a full scan and quickly find which OSI layer needs attention.
-          </p>
-        </div>
-
-        <div class="input-actions">
-          <button type="button" onclick="window.location.href='advanced.html'">
-            Advanced View
-          </button>
-          <p id="advanced-helper" class="helper-text"></p>
-        </div>
-      </header>
-
-      <section class="input-panel">
-        <h2>Quick Scan</h2>
-        <p class="section-text">
-          Enter a host and URL for the diagnostic test.
-        </p>
-
-        <div class="input-grid">
-          <div class="input-group">
-            <label for="target-host">Host</label>
-            <input id="target-host" type="text" placeholder="8.8.8.8" />
-          </div>
-
-          <div class="input-group">
-            <label for="target-url">URL</label>
-            <input id="target-url" type="text" placeholder="https://example.com" />
-          </div>
-        </div>
-
-        <div class="input-actions">
-          <button id="run-scan-btn" type="button">Test My Network</button>
-          <p id="scan-helper" class="helper-text">
-            Runs a full diagnostic scan.
-          </p>
-        </div>
-      </section>
-
-      <section class="platform-panel">
-        <div class="panel-header">
-          <h2>Overall Result</h2>
-          <p class="section-text">Summary of the scan.</p>
-        </div>
-
-        <article class="summary-card status-warning" id="summary-card">
-          <div class="summary-card-top">
-            <div>
-              <h3>Diagnostic Summary</h3>
-              <p id="summary-text">No scan has been run yet.</p>
-            </div>
-            <span class="status-chip warning" id="overall-status-chip">Idle</span>
-          </div>
-
-          <div class="summary-highlight">
-            <p id="summary-output">Press "Test My Network" to begin.</p>
-          </div>
-        </article>
-      </section>
-
-      <section class="platform-panel">
-        <div class="panel-header">
-          <h2>What To Do Next</h2>
-          <p class="section-text">
-            The app highlights the first area that likely needs attention.
-          </p>
-        </div>
-
-        <article class="next-step-card" id="next-step-card">
-          <div class="summary-card-top">
-            <div>
-              <h3>Suggested Next Step</h3>
-              <p id="next-step-text">Run a scan to get a suggested action.</p>
-            </div>
-          </div>
-
-          <div class="summary-highlight">
-            <p id="next-step-output">The app will suggest what to check first.</p>
-          </div>
-        </article>
-      </section>
-
-      <section class="platform-panel">
-        <div class="panel-header">
-          <h2>Layer Breakdown</h2>
-          <p class="section-text">
-            Select a layer to inspect the explanation and raw output in one place.
-          </p>
-        </div>
-
-        <div class="layer-workspace">
-          <!-- Left side: compact layer list -->
-          <aside class="layer-list-panel">
-            <button
-              type="button"
-              class="layer-list-item status-warning active"
-              id="layer-1-card"
-              data-layer="1"
-            >
-              <div class="layer-list-main">
+    <body>
+        <main class="app-shell">
+            <header class="app-header">
                 <div>
-                  <h3>Layer 1 · Physical</h3>
-                  <p class="layer-list-subtitle">Adapter and link state</p>
+                    <p class="eyebrow">Cross-Platform Diagnostic Tool</p>
+                    <h1>Test My Network</h1>
+                    <p class="subtitle">
+                        Run a full scan and quickly find which OSI layer needs
+                        attention.
+                    </p>
                 </div>
-                <span class="status-chip warning" id="layer-1-chip">Idle</span>
-              </div>
-              <p class="layer-list-summary" id="layer-1-summary">
-                Waiting for scan results...
-              </p>
-            </button>
 
-            <button
-              type="button"
-              class="layer-list-item status-warning"
-              id="layer-2-card"
-              data-layer="2"
-            >
-              <div class="layer-list-main">
-                <div>
-                  <h3>Layer 2 · Data Link</h3>
-                  <p class="layer-list-subtitle">Neighbor and local link reachability</p>
+                <div class="input-actions">
+                    <button
+                        type="button"
+                        onclick="window.location.href = 'advanced.html'"
+                    >
+                        Advanced View
+                    </button>
+                    <p id="advanced-helper" class="helper-text"></p>
                 </div>
-                <span class="status-chip warning" id="layer-2-chip">Idle</span>
-              </div>
-              <p class="layer-list-summary" id="layer-2-summary">
-                Waiting for scan results...
-              </p>
-            </button>
+            </header>
 
-            <button
-              type="button"
-              class="layer-list-item status-warning"
-              id="layer-3-card"
-              data-layer="3"
-            >
-              <div class="layer-list-main">
-                <div>
-                  <h3>Layer 3 · Network</h3>
-                  <p class="layer-list-subtitle">IP, route, gateway, ping</p>
-                </div>
-                <span class="status-chip warning" id="layer-3-chip">Idle</span>
-              </div>
-              <p class="layer-list-summary" id="layer-3-summary">
-                Waiting for scan results...
-              </p>
-            </button>
-
-            <button
-              type="button"
-              class="layer-list-item status-warning"
-              id="layer-4-card"
-              data-layer="4"
-            >
-              <div class="layer-list-main">
-                <div>
-                  <h3>Layer 4 · Transport</h3>
-                  <p class="layer-list-subtitle">Port and service reachability</p>
-                </div>
-                <span class="status-chip warning" id="layer-4-chip">Idle</span>
-              </div>
-              <p class="layer-list-summary" id="layer-4-summary">
-                Waiting for scan results...
-              </p>
-            </button>
-
-            <button
-              type="button"
-              class="layer-list-item status-warning"
-              id="layer-7-card"
-              data-layer="7"
-            >
-              <div class="layer-list-main">
-                <div>
-                  <h3>Layer 7 · Application</h3>
-                  <p class="layer-list-subtitle">DNS and HTTP access</p>
-                </div>
-                <span class="status-chip warning" id="layer-7-chip">Idle</span>
-              </div>
-              <p class="layer-list-summary" id="layer-7-summary">
-                Waiting for scan results...
-              </p>
-            </button>
-          </aside>
-
-          <!-- Right side: focused detail viewer -->
-          <section class="layer-detail-panel">
-            <div class="layer-detail-header">
-              <div>
-                <p class="detail-eyebrow">Selected Layer</p>
-                <h2 id="active-layer-title">Layer 1 · Physical</h2>
-                <p class="section-text" id="active-layer-subtitle">
-                  Adapter and link state
+            <section class="input-panel">
+                <h2>Quick Scan</h2>
+                <p class="section-text">
+                    Enter a host and URL for the diagnostic test.
                 </p>
-              </div>
-              <span class="status-chip warning" id="active-layer-chip">Idle</span>
-            </div>
 
-            <div class="detail-card">
-              <p class="detail-label">Recommended Action</p>
-              <p class="detail-text" id="active-layer-next-step">
-                Run a scan to get a suggested action.
-              </p>
-            </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="target-host">Host</label>
+                        <input
+                            id="target-host"
+                            type="text"
+                            placeholder="8.8.8.8"
+                        />
+                    </div>
 
-            <div class="detail-card">
-              <p class="detail-label">Explanation</p>
-              <div
-                id="active-layer-findings"
-                class="diagnostic-findings status-warning"
-              >
-                <div class="finding-item finding-warning">
-                  <div class="finding-head">
-                    <span class="finding-title">Waiting for Results</span>
-                    <span class="status-chip warning">Idle</span>
-                  </div>
-                  <p class="finding-meaning">
-                    Run a scan to see detailed findings for the selected layer.
-                  </p>
-                  <p class="finding-next-step">
-                    After the scan, this section can highlight healthy, warning, and problem findings with matching colors.
-                  </p>
+                    <div class="input-group">
+                        <label for="target-url">URL</label>
+                        <input
+                            id="target-url"
+                            type="text"
+                            placeholder="https://example.com"
+                        />
+                    </div>
                 </div>
-              </div>
-            </div>
 
-            <div class="detail-card">
-              <div class="detail-card-top">
-                <p class="detail-label">Raw Output</p>
-                <button
-                  type="button"
-                  class="details-toggle"
-                  data-target="active-layer-raw-wrapper"
-                  aria-expanded="false"
-                >
-                  View Raw Output
-                </button>
-              </div>
+                <div class="input-actions">
+                    <button id="run-scan-btn" type="button">
+                        Test My Network
+                    </button>
+                    <p id="scan-helper" class="helper-text">
+                        Runs a full diagnostic scan.
+                    </p>
+                </div>
+            </section>
 
-              <div class="hidden" id="active-layer-raw-wrapper">
-                <pre id="active-layer-output" class="output-box">No output yet.</pre>
-              </div>
-            </div>
-          </section>
-        </div>
-      </section>
+            <section class="platform-panel">
+                <div class="panel-header">
+                    <h2>Quick Repair</h2>
+                    <p class="section-text">
+                        Try a simple network repair flow without using the
+                        advanced tools.
+                    </p>
+                </div>
 
-      <!-- Hidden compatibility holders so your current JS can still target per-layer IDs -->
-      <section class="hidden" aria-hidden="true">
-        <div id="layer-1-next-step">Run a scan to get a suggested action.</div>
-        <div id="layer-2-next-step">Run a scan to get a suggested action.</div>
-        <div id="layer-3-next-step">Run a scan to get a suggested action.</div>
-        <div id="layer-4-next-step">Run a scan to get a suggested action.</div>
-        <div id="layer-7-next-step">Run a scan to get a suggested action.</div>
+                <article class="next-step-card" id="solve-card">
+                    <div class="summary-card-top">
+                        <div>
+                            <h3>Solve My Network</h3>
+                            <p>
+                                This tries a few common repair steps such as
+                                bringing the adapter up, requesting DHCP, and
+                                flushing DNS cache.
+                            </p>
+                        </div>
+                    </div>
 
-        <div id="layer-1-explanation-text">No additional explanation yet.</div>
-        <div id="layer-2-explanation-text">No additional explanation yet.</div>
-        <div id="layer-3-explanation-text">No additional explanation yet.</div>
-        <div id="layer-4-explanation-text">No additional explanation yet.</div>
-        <div id="layer-7-explanation-text">No additional explanation yet.</div>
+                    <div class="input-actions">
+                        <button id="solve-network-btn" type="button">
+                            Solve My Network
+                        </button>
+                        <p class="helper-text">
+                            Best for normal users who want a single repair
+                            action.
+                        </p>
+                    </div>
 
-        <pre id="layer-1-output">No output yet.</pre>
-        <pre id="layer-2-output">No output yet.</pre>
-        <pre id="layer-3-output">No output yet.</pre>
-        <pre id="layer-4-output">No output yet.</pre>
-        <pre id="layer-7-output">No output yet.</pre>
+                    <div class="summary-highlight">
+                        <pre id="solve-output" class="output-box">
+No repair action has been run yet.</pre
+                        >
+                    </div>
+                </article>
+            </section>
 
-        <div id="layer-1-findings"></div>
-        <div id="layer-2-findings"></div>
-        <div id="layer-3-findings"></div>
-        <div id="layer-4-findings"></div>
-        <div id="layer-7-findings"></div>
-      </section>
-    </main>
-  </body>
+            <section class="platform-panel">
+                <div class="panel-header">
+                    <h2>Overall Result</h2>
+                    <p class="section-text">Summary of the scan.</p>
+                </div>
+
+                <article class="summary-card status-warning" id="summary-card">
+                    <div class="summary-card-top">
+                        <div>
+                            <h3>Diagnostic Summary</h3>
+                            <p id="summary-text">No scan has been run yet.</p>
+                        </div>
+                        <span
+                            class="status-chip warning"
+                            id="overall-status-chip"
+                            >Idle</span
+                        >
+                    </div>
+
+                    <div class="summary-highlight">
+                        <p id="summary-output">
+                            Press "Test My Network" to begin.
+                        </p>
+                    </div>
+                </article>
+            </section>
+
+            <section class="platform-panel">
+                <div class="panel-header">
+                    <h2>What To Do Next</h2>
+                    <p class="section-text">
+                        The app highlights the first area that likely needs
+                        attention.
+                    </p>
+                </div>
+
+                <article class="next-step-card" id="next-step-card">
+                    <div class="summary-card-top">
+                        <div>
+                            <h3>Suggested Next Step</h3>
+                            <p id="next-step-text">
+                                Run a scan to get a suggested action.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="summary-highlight">
+                        <p id="next-step-output">
+                            The app will suggest what to check first.
+                        </p>
+                    </div>
+                </article>
+            </section>
+
+            <section class="platform-panel">
+                <div class="panel-header">
+                    <h2>Layer Breakdown</h2>
+                    <p class="section-text">
+                        Select a layer to inspect the explanation and raw output
+                        in one place.
+                    </p>
+                </div>
+
+                <div class="layer-workspace">
+                    <aside class="layer-list-panel">
+                        <button
+                            type="button"
+                            class="layer-list-item status-warning active"
+                            id="layer-1-card"
+                            data-layer="1"
+                        >
+                            <div class="layer-list-main">
+                                <div>
+                                    <h3>Layer 1 · Physical</h3>
+                                    <p class="layer-list-subtitle">
+                                        Adapter and link state
+                                    </p>
+                                </div>
+                                <span
+                                    class="status-chip warning"
+                                    id="layer-1-chip"
+                                    >Idle</span
+                                >
+                            </div>
+                            <p class="layer-list-summary" id="layer-1-summary">
+                                Waiting for scan results...
+                            </p>
+                        </button>
+
+                        <button
+                            type="button"
+                            class="layer-list-item status-warning"
+                            id="layer-2-card"
+                            data-layer="2"
+                        >
+                            <div class="layer-list-main">
+                                <div>
+                                    <h3>Layer 2 · Data Link</h3>
+                                    <p class="layer-list-subtitle">
+                                        Neighbor and local link reachability
+                                    </p>
+                                </div>
+                                <span
+                                    class="status-chip warning"
+                                    id="layer-2-chip"
+                                    >Idle</span
+                                >
+                            </div>
+                            <p class="layer-list-summary" id="layer-2-summary">
+                                Waiting for scan results...
+                            </p>
+                        </button>
+
+                        <button
+                            type="button"
+                            class="layer-list-item status-warning"
+                            id="layer-3-card"
+                            data-layer="3"
+                        >
+                            <div class="layer-list-main">
+                                <div>
+                                    <h3>Layer 3 · Network</h3>
+                                    <p class="layer-list-subtitle">
+                                        IP, route, gateway, ping
+                                    </p>
+                                </div>
+                                <span
+                                    class="status-chip warning"
+                                    id="layer-3-chip"
+                                    >Idle</span
+                                >
+                            </div>
+                            <p class="layer-list-summary" id="layer-3-summary">
+                                Waiting for scan results...
+                            </p>
+                        </button>
+
+                        <button
+                            type="button"
+                            class="layer-list-item status-warning"
+                            id="layer-4-card"
+                            data-layer="4"
+                        >
+                            <div class="layer-list-main">
+                                <div>
+                                    <h3>Layer 4 · Transport</h3>
+                                    <p class="layer-list-subtitle">
+                                        Port and service reachability
+                                    </p>
+                                </div>
+                                <span
+                                    class="status-chip warning"
+                                    id="layer-4-chip"
+                                    >Idle</span
+                                >
+                            </div>
+                            <p class="layer-list-summary" id="layer-4-summary">
+                                Waiting for scan results...
+                            </p>
+                        </button>
+
+                        <button
+                            type="button"
+                            class="layer-list-item status-warning"
+                            id="layer-7-card"
+                            data-layer="7"
+                        >
+                            <div class="layer-list-main">
+                                <div>
+                                    <h3>Layer 7 · Application</h3>
+                                    <p class="layer-list-subtitle">
+                                        DNS and HTTP access
+                                    </p>
+                                </div>
+                                <span
+                                    class="status-chip warning"
+                                    id="layer-7-chip"
+                                    >Idle</span
+                                >
+                            </div>
+                            <p class="layer-list-summary" id="layer-7-summary">
+                                Waiting for scan results...
+                            </p>
+                        </button>
+                    </aside>
+
+                    <section class="layer-detail-panel">
+                        <div class="layer-detail-header">
+                            <div>
+                                <p class="detail-eyebrow">Selected Layer</p>
+                                <h2 id="active-layer-title">
+                                    Layer 1 · Physical
+                                </h2>
+                                <p
+                                    class="section-text"
+                                    id="active-layer-subtitle"
+                                >
+                                    Adapter and link state
+                                </p>
+                            </div>
+                            <span
+                                class="status-chip warning"
+                                id="active-layer-chip"
+                                >Idle</span
+                            >
+                        </div>
+
+                        <div class="detail-card">
+                            <p class="detail-label">Recommended Action</p>
+                            <p class="detail-text" id="active-layer-next-step">
+                                Run a scan to get a suggested action.
+                            </p>
+                        </div>
+
+                        <div class="detail-card">
+                            <p class="detail-label">Explanation</p>
+                            <div
+                                id="active-layer-findings"
+                                class="diagnostic-findings status-warning"
+                            >
+                                <div class="finding-item finding-warning">
+                                    <div class="finding-head">
+                                        <span class="finding-title"
+                                            >Waiting for Results</span
+                                        >
+                                        <span class="status-chip warning"
+                                            >Idle</span
+                                        >
+                                    </div>
+                                    <p class="finding-meaning">
+                                        Run a scan to see detailed findings for
+                                        the selected layer.
+                                    </p>
+                                    <p class="finding-next-step">
+                                        After the scan, this section can
+                                        highlight healthy, warning, and problem
+                                        findings with matching colors.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-card">
+                            <div class="detail-card-top">
+                                <p class="detail-label">Raw Output</p>
+                                <button
+                                    type="button"
+                                    class="details-toggle"
+                                    data-target="active-layer-raw-wrapper"
+                                    aria-expanded="false"
+                                >
+                                    View Raw Output
+                                </button>
+                            </div>
+
+                            <div class="hidden" id="active-layer-raw-wrapper">
+                                <pre
+                                    id="active-layer-output"
+                                    class="output-box"
+                                >
+No output yet.</pre
+                                >
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section class="hidden" aria-hidden="true">
+                <div id="linux"></div>
+                <div id="windows"></div>
+
+                <div id="layer-1-next-step">
+                    Run a scan to get a suggested action.
+                </div>
+                <div id="layer-2-next-step">
+                    Run a scan to get a suggested action.
+                </div>
+                <div id="layer-3-next-step">
+                    Run a scan to get a suggested action.
+                </div>
+                <div id="layer-4-next-step">
+                    Run a scan to get a suggested action.
+                </div>
+                <div id="layer-7-next-step">
+                    Run a scan to get a suggested action.
+                </div>
+
+                <div id="layer-1-explanation-text">
+                    No additional explanation yet.
+                </div>
+                <div id="layer-2-explanation-text">
+                    No additional explanation yet.
+                </div>
+                <div id="layer-3-explanation-text">
+                    No additional explanation yet.
+                </div>
+                <div id="layer-4-explanation-text">
+                    No additional explanation yet.
+                </div>
+                <div id="layer-7-explanation-text">
+                    No additional explanation yet.
+                </div>
+
+                <pre id="layer-1-output">No output yet.</pre>
+                <pre id="layer-2-output">No output yet.</pre>
+                <pre id="layer-3-output">No output yet.</pre>
+                <pre id="layer-4-output">No output yet.</pre>
+                <pre id="layer-7-output">No output yet.</pre>
+
+                <div id="layer-1-findings"></div>
+                <div id="layer-2-findings"></div>
+                <div id="layer-3-findings"></div>
+                <div id="layer-4-findings"></div>
+                <div id="layer-7-findings"></div>
+            </section>
+        </main>
+    </body>
 </html>

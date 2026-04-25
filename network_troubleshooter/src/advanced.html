@@ -1,332 +1,389 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Network Troubleshooter</title>
-    <link rel="stylesheet" href="styles.css" />
-    <script type="module" src="/main.js" defer></script>
-  </head>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Network Troubleshooter</title>
+        <link rel="stylesheet" href="styles.css" />
+        <script type="module" src="/main.js" defer></script>
+    </head>
 
-  <body>
-    <main class="app-shell">
-      <header class="app-header">
-        <div>
-          <p class="eyebrow">Cross-Platform Diagnostic Tool</p>
-          <h1>Network Troubleshooter</h1>
-          <p class="subtitle">
-            Run individual checks and inspect parsed diagnostic output by layer.
-          </p>
-        </div>
-        <div class="input-actions">
-  <button type="button" onclick="window.location.href='index.html'">
-    Default View
-  </button>
-</div>
-      </header>
+    <body>
+        <main class="app-shell">
+            <header class="app-header">
+                <div>
+                    <p class="eyebrow">Cross-Platform Diagnostic Tool</p>
+                    <h1>Network Troubleshooter</h1>
+                    <p class="subtitle">
+                        Run individual checks and inspect parsed diagnostic
+                        output by layer.
+                    </p>
+                </div>
+                <div class="input-actions">
+                    <button
+                        type="button"
+                        onclick="window.location.href = 'index.html'"
+                    >
+                        Default View
+                    </button>
+                </div>
+            </header>
 
-      <section class="input-panel">
-        <h2>Target Input</h2>
-        <p class="section-text">
-          Use a hostname, URL, or IP depending on the command you want to run.
-        </p>
+            <section class="input-panel">
+                <h2>Target Input</h2>
+                <p class="section-text">
+                    Use a hostname, URL, or IP depending on the command you want
+                    to run.
+                </p>
 
-        <div class="input-grid">
-          <div class="input-group">
-            <label for="dest-url">Host / URL</label>
-            <input
-              id="dest-url"
-              type="text"
-              placeholder="example.com or https://example.com"
-            />
-          </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="dest-url">Host / URL</label>
+                        <input
+                            id="dest-url"
+                            type="text"
+                            placeholder="example.com or https://example.com"
+                        />
+                    </div>
 
-          <div class="input-group">
-            <label for="dest-ip-add">IP Address</label>
-            <input
-              id="dest-ip-add"
-              type="text"
-              placeholder="8.8.8.8"
-            />
-          </div>
-        </div>
+                    <div class="input-group">
+                        <label for="dest-ip-add">IP Address</label>
+                        <input
+                            id="dest-ip-add"
+                            type="text"
+                            placeholder="8.8.8.8"
+                        />
+                    </div>
+                </div>
 
-        <div class="input-actions">
-          <button id="submitBtn" type="button">Use Current Inputs</button>
-          <p id="active-target-label" class="helper-text">
-            Current targets will be used by command buttons below.
-          </p>
-        </div>
-      </section>
+                <div class="input-actions">
+                    <button id="submitBtn" type="button">
+                        Use Current Inputs
+                    </button>
+                    <p id="active-target-label" class="helper-text">
+                        Current targets will be used by command buttons below.
+                    </p>
+                </div>
+            </section>
 
-      <section class="platform-panel" id="linux">
-        <div class="panel-header">
-          <h2>Linux Commands</h2>
-          <p class="section-text">
-            Layered diagnostics using Linux-native tools.
-          </p>
-        </div>
+            <section class="platform-panel">
+                <div class="panel-header">
+                    <h2>Manual Repair Tools</h2>
+                    <p class="section-text">
+                        Select an interface and run individual repair actions.
+                    </p>
+                </div>
 
-        <div class="command-grid">
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>ip link</h3>
-                <p>Layer 1 · Physical connection</p>
-              </div>
-              <form id="run-ip-link">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="ip-link-output" class="output-box"></pre>
-          </article>
+                <article class="next-step-card" id="manual-repair-card">
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="candidate-interface-select"
+                                >Interface</label
+                            >
+                            <select id="candidate-interface-select">
+                                <option value="">Loading interfaces...</option>
+                            </select>
+                        </div>
+                    </div>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>nmcli</h3>
-                <p>Layer 1 · Connection state</p>
-              </div>
-              <form id="run-nmcli">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="nmcli-output" class="output-box"></pre>
-          </article>
+                    <div class="input-actions">
+                        <button id="refresh-interfaces-btn" type="button">
+                            Refresh Interfaces
+                        </button>
+                        <button id="up-interface-btn" type="button">
+                            Bring Up
+                        </button>
+                        <button id="down-interface-btn" type="button">
+                            Bring Down
+                        </button>
+                        <button id="dhcp-request-btn" type="button">
+                            Renew DHCP
+                        </button>
+                        <button id="flush-dns-btn" type="button">
+                            Flush DNS
+                        </button>
+                    </div>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>ip neigh</h3>
-                <p>Layer 2 · Neighbor reachability</p>
-              </div>
-              <form id="run-ip-neigh">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="ip-neigh-output" class="output-box"></pre>
-          </article>
+                    <div class="summary-highlight">
+                        <pre id="solve-output" class="output-box">
+No repair action has been run yet.</pre
+                        >
+                    </div>
+                </article>
+            </section>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>ip addr</h3>
-                <p>Layer 3 · IP assignment</p>
-              </div>
-              <form id="run-ip-addr">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="ip-addr-output" class="output-box"></pre>
-          </article>
+            <section class="platform-panel" id="linux">
+                <div class="panel-header">
+                    <h2>Linux Commands</h2>
+                    <p class="section-text">
+                        Layered diagnostics using Linux-native tools.
+                    </p>
+                </div>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>ip route</h3>
-                <p>Layer 3 · Routing table</p>
-              </div>
-              <form id="run-ip-route">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="ip-route-output" class="output-box"></pre>
-          </article>
+                <div class="command-grid">
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>ip link</h3>
+                                <p>Layer 1 · Physical connection</p>
+                            </div>
+                            <form id="run-ip-link">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="ip-link-output" class="output-box"></pre>
+                    </article>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>ping</h3>
-                <p>Layer 3 · Reachability test</p>
-              </div>
-              <form id="run-ping">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="ping-output" class="output-box"></pre>
-          </article>
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>nmcli</h3>
+                                <p>Layer 1 · Connection state</p>
+                            </div>
+                            <form id="run-nmcli">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="nmcli-output" class="output-box"></pre>
+                    </article>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>netcat</h3>
-                <p>Layer 4 · TCP port reachability</p>
-              </div>
-              <form id="run-netcat">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="netcat-output" class="output-box"></pre>
-          </article>
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>ip neigh</h3>
+                                <p>Layer 2 · Neighbor reachability</p>
+                            </div>
+                            <form id="run-ip-neigh">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="ip-neigh-output" class="output-box"></pre>
+                    </article>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>curl</h3>
-                <p>Layer 7 · HTTP response</p>
-              </div>
-              <form id="run-curl">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="curl-output" class="output-box"></pre>
-          </article>
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>ip addr</h3>
+                                <p>Layer 3 · IP assignment</p>
+                            </div>
+                            <form id="run-ip-addr">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="ip-addr-output" class="output-box"></pre>
+                    </article>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>dig</h3>
-                <p>Layer 7 · DNS resolution</p>
-              </div>
-              <form id="run-dig">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="dig-output" class="output-box"></pre>
-          </article>
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>ip route</h3>
+                                <p>Layer 3 · Routing table</p>
+                            </div>
+                            <form id="run-ip-route">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="ip-route-output" class="output-box"></pre>
+                    </article>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>traceroute</h3>
-                <p>Layer 3/4 · Path analysis</p>
-              </div>
-              <form id="run-traceroute">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="traceroute-output" class="output-box"></pre>
-          </article>
-        </div>
-      </section>
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>ping</h3>
+                                <p>Layer 3 · Reachability test</p>
+                            </div>
+                            <form id="run-ping">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="ping-output" class="output-box"></pre>
+                    </article>
 
-      <section class="platform-panel" id="windows">
-        <div class="panel-header">
-          <h2>Windows Commands</h2>
-          <p class="section-text">
-            Layered diagnostics using PowerShell and Windows-native tools.
-          </p>
-        </div>
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>netcat</h3>
+                                <p>Layer 4 · TCP port reachability</p>
+                            </div>
+                            <form id="run-netcat">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="netcat-output" class="output-box"></pre>
+                    </article>
 
-        <div class="command-grid">
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>Link State</h3>
-                <p>Layer 1 · Physical connection</p>
-              </div>
-              <form id="run-link-state">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="link-state-output" class="output-box"></pre>
-          </article>
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>curl</h3>
+                                <p>Layer 7 · HTTP response</p>
+                            </div>
+                            <form id="run-curl">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="curl-output" class="output-box"></pre>
+                    </article>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>Get Neighbors</h3>
-                <p>Layer 2 · Neighbor reachability</p>
-              </div>
-              <form id="run-get-neighbors">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="neighbors-output" class="output-box"></pre>
-          </article>
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>dig</h3>
+                                <p>Layer 7 · DNS resolution</p>
+                            </div>
+                            <form id="run-dig">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="dig-output" class="output-box"></pre>
+                    </article>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>IP Configuration</h3>
-                <p>Layer 3 · IP assignment</p>
-              </div>
-              <form id="run-get-ipconfig">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="ipconfig-output" class="output-box"></pre>
-          </article>
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>traceroute</h3>
+                                <p>Layer 3/4 · Path analysis</p>
+                            </div>
+                            <form id="run-traceroute">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="traceroute-output" class="output-box"></pre>
+                    </article>
+                </div>
+            </section>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>Get Route</h3>
-                <p>Layer 3 · Routing table</p>
-              </div>
-              <form id="run-get-route">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="route-output" class="output-box"></pre>
-          </article>
+            <section class="platform-panel" id="windows">
+                <div class="panel-header">
+                    <h2>Windows Commands</h2>
+                    <p class="section-text">
+                        Layered diagnostics using PowerShell and Windows-native
+                        tools.
+                    </p>
+                </div>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>Test Connection</h3>
-                <p>Layer 3 · Reachability test</p>
-              </div>
-              <form id="run-test-connection">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="win-ping-output" class="output-box"></pre>
-          </article>
+                <div class="command-grid">
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>Link State</h3>
+                                <p>Layer 1 · Physical connection</p>
+                            </div>
+                            <form id="run-link-state">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="link-state-output" class="output-box"></pre>
+                    </article>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>Test Net Connection</h3>
-                <p>Layer 4 · TCP port reachability</p>
-              </div>
-              <form id="run-test-net-connection">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="net-connection-output" class="output-box"></pre>
-          </article>
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>Get Neighbors</h3>
+                                <p>Layer 2 · Neighbor reachability</p>
+                            </div>
+                            <form id="run-get-neighbors">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="neighbors-output" class="output-box"></pre>
+                    </article>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>Resolve DNS</h3>
-                <p>Layer 7 · DNS resolution</p>
-              </div>
-              <form id="run-resolve-dns">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="dns-output" class="output-box"></pre>
-          </article>
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>IP Configuration</h3>
+                                <p>Layer 3 · IP assignment</p>
+                            </div>
+                            <form id="run-get-ipconfig">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="ipconfig-output" class="output-box"></pre>
+                    </article>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>Web Request</h3>
-                <p>Layer 7 · HTTP response</p>
-              </div>
-              <form id="run-web-request">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="web-output" class="output-box"></pre>
-          </article>
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>Get Route</h3>
+                                <p>Layer 3 · Routing table</p>
+                            </div>
+                            <form id="run-get-route">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="route-output" class="output-box"></pre>
+                    </article>
 
-          <article class="command-card">
-            <div class="command-head">
-              <div>
-                <h3>Tracert</h3>
-                <p>Layer 3/4 · Path analysis</p>
-              </div>
-              <form id="run-tracert">
-                <button type="submit">Run</button>
-              </form>
-            </div>
-            <pre id="tracert-output" class="output-box"></pre>
-          </article>
-        </div>
-      </section>
-    </main>
-  </body>
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>Test Connection</h3>
+                                <p>Layer 3 · Reachability test</p>
+                            </div>
+                            <form id="run-test-connection">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="win-ping-output" class="output-box"></pre>
+                    </article>
+
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>Test Net Connection</h3>
+                                <p>Layer 4 · TCP port reachability</p>
+                            </div>
+                            <form id="run-test-net-connection">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre
+                            id="net-connection-output"
+                            class="output-box"
+                        ></pre>
+                    </article>
+
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>Resolve DNS</h3>
+                                <p>Layer 7 · DNS resolution</p>
+                            </div>
+                            <form id="run-resolve-dns">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="dns-output" class="output-box"></pre>
+                    </article>
+
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>Web Request</h3>
+                                <p>Layer 7 · HTTP response</p>
+                            </div>
+                            <form id="run-web-request">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="web-output" class="output-box"></pre>
+                    </article>
+
+                    <article class="command-card">
+                        <div class="command-head">
+                            <div>
+                                <h3>Tracert</h3>
+                                <p>Layer 3/4 · Path analysis</p>
+                            </div>
+                            <form id="run-tracert">
+                                <button type="submit">Run</button>
+                            </form>
+                        </div>
+                        <pre id="tracert-output" class="output-box"></pre>
+                    </article>
+                </div>
+            </section>
+        </main>
+    </body>
 </html>

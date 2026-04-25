@@ -7,7 +7,7 @@ let currentArgs = null;
 let selectedLayer = "1";
 
 const LAYER_INFO = {
-  "1": {
+  1: {
     key: "LayerOne",
     title: "Layer 1 · Physical",
     subtitle: "Adapter and link state",
@@ -19,7 +19,7 @@ const LAYER_INFO = {
     output: "layer-1-output",
     findings: "layer-1-findings",
   },
-  "2": {
+  2: {
     key: "LayerTwo",
     title: "Layer 2 · Data Link",
     subtitle: "Neighbor and local link reachability",
@@ -31,7 +31,7 @@ const LAYER_INFO = {
     output: "layer-2-output",
     findings: "layer-2-findings",
   },
-  "3": {
+  3: {
     key: "LayerThree",
     title: "Layer 3 · Network",
     subtitle: "IP, route, gateway, ping",
@@ -43,7 +43,7 @@ const LAYER_INFO = {
     output: "layer-3-output",
     findings: "layer-3-findings",
   },
-  "4": {
+  4: {
     key: "LayerFour",
     title: "Layer 4 · Transport",
     subtitle: "Port and service reachability",
@@ -55,7 +55,7 @@ const LAYER_INFO = {
     output: "layer-4-output",
     findings: "layer-4-findings",
   },
-  "7": {
+  7: {
     key: "LayerSeven",
     title: "Layer 7 · Application",
     subtitle: "DNS and HTTP access",
@@ -171,55 +171,65 @@ function setupLinuxHandlers() {
   const digMsgEl = document.querySelector("#dig-output");
   const traceRouteMsgEl = document.querySelector("#traceroute-output");
 
-  document.querySelector("#run-ip-link")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setOutput(ipLinkMsgEl, "Running...");
-    try {
-      setOutput(ipLinkMsgEl, await invoke("ip_link"));
-    } catch (err) {
-      setOutput(ipLinkMsgEl, `Error: ${err}`);
-    }
-  });
+  document
+    .querySelector("#run-ip-link")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setOutput(ipLinkMsgEl, "Running...");
+      try {
+        setOutput(ipLinkMsgEl, await invoke("ip_link"));
+      } catch (err) {
+        setOutput(ipLinkMsgEl, `Error: ${err}`);
+      }
+    });
 
-  document.querySelector("#run-ip-addr")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setOutput(ipAddrMsgEl, "Running...");
-    try {
-      setOutput(ipAddrMsgEl, await invoke("ip_addr"));
-    } catch (err) {
-      setOutput(ipAddrMsgEl, `Error: ${err}`);
-    }
-  });
+  document
+    .querySelector("#run-ip-addr")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setOutput(ipAddrMsgEl, "Running...");
+      try {
+        setOutput(ipAddrMsgEl, await invoke("ip_addr"));
+      } catch (err) {
+        setOutput(ipAddrMsgEl, `Error: ${err}`);
+      }
+    });
 
-  document.querySelector("#run-ip-route")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setOutput(ipRouteMsgEl, "Running...");
-    try {
-      setOutput(ipRouteMsgEl, await invoke("ip_route"));
-    } catch (err) {
-      setOutput(ipRouteMsgEl, `Error: ${err}`);
-    }
-  });
+  document
+    .querySelector("#run-ip-route")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setOutput(ipRouteMsgEl, "Running...");
+      try {
+        setOutput(ipRouteMsgEl, await invoke("ip_route"));
+      } catch (err) {
+        setOutput(ipRouteMsgEl, `Error: ${err}`);
+      }
+    });
 
-  document.querySelector("#run-nmcli")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setOutput(nmcliMsgEl, "Running...");
-    try {
-      setOutput(nmcliMsgEl, await invoke("nmcli"));
-    } catch (err) {
-      setOutput(nmcliMsgEl, `Error: ${err}`);
-    }
-  });
+  document
+    .querySelector("#run-nmcli")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setOutput(nmcliMsgEl, "Running...");
+      try {
+        setOutput(nmcliMsgEl, await invoke("nmcli"));
+      } catch (err) {
+        setOutput(nmcliMsgEl, `Error: ${err}`);
+      }
+    });
 
-  document.querySelector("#run-ip-neigh")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setOutput(ipNeighMsgEl, "Running...");
-    try {
-      setOutput(ipNeighMsgEl, await invoke("ip_neigh"));
-    } catch (err) {
-      setOutput(ipNeighMsgEl, `Error: ${err}`);
-    }
-  });
+  document
+    .querySelector("#run-ip-neigh")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setOutput(ipNeighMsgEl, "Running...");
+      try {
+        setOutput(ipNeighMsgEl, await invoke("ip_neigh"));
+      } catch (err) {
+        setOutput(ipNeighMsgEl, `Error: ${err}`);
+      }
+    });
 
   document.querySelector("#run-ping")?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -232,17 +242,19 @@ function setupLinuxHandlers() {
     }
   });
 
-  document.querySelector("#run-netcat")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setOutput(netcatMsgEl, "Running...");
-    try {
-      const { url } = getArgs();
-      const host = toHost(url);
-      setOutput(netcatMsgEl, await invoke("netcat", { host }));
-    } catch (err) {
-      setOutput(netcatMsgEl, `Error: ${err}`);
-    }
-  });
+  document
+    .querySelector("#run-netcat")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setOutput(netcatMsgEl, "Running...");
+      try {
+        const { url } = getArgs();
+        const host = toHost(url);
+        setOutput(netcatMsgEl, await invoke("netcat", { host }));
+      } catch (err) {
+        setOutput(netcatMsgEl, `Error: ${err}`);
+      }
+    });
 
   document.querySelector("#run-curl")?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -267,17 +279,19 @@ function setupLinuxHandlers() {
     }
   });
 
-  document.querySelector("#run-traceroute")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setOutput(traceRouteMsgEl, "Running...");
-    try {
-      const { url } = getArgs();
-      const host = toHost(url);
-      setOutput(traceRouteMsgEl, await invoke("traceroute", { host }));
-    } catch (err) {
-      setOutput(traceRouteMsgEl, `Error: ${err}`);
-    }
-  });
+  document
+    .querySelector("#run-traceroute")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setOutput(traceRouteMsgEl, "Running...");
+      try {
+        const { url } = getArgs();
+        const host = toHost(url);
+        setOutput(traceRouteMsgEl, await invoke("traceroute", { host }));
+      } catch (err) {
+        setOutput(traceRouteMsgEl, `Error: ${err}`);
+      }
+    });
 }
 
 function setupWindowsHandlers() {
@@ -291,103 +305,321 @@ function setupWindowsHandlers() {
   const webMsgEl = document.querySelector("#web-output");
   const tracertMsgEl = document.querySelector("#tracert-output");
 
-  document.querySelector("#run-link-state")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setOutput(linkStateMsgEl, "Running...");
+  document
+    .querySelector("#run-link-state")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setOutput(linkStateMsgEl, "Running...");
+      try {
+        setOutput(linkStateMsgEl, await invoke("link_state"));
+      } catch (err) {
+        setOutput(linkStateMsgEl, `Error: ${err}`);
+      }
+    });
+
+  document
+    .querySelector("#run-get-neighbors")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setOutput(neighborsMsgEl, "Running...");
+      try {
+        setOutput(neighborsMsgEl, await invoke("get_neighbors"));
+      } catch (err) {
+        setOutput(neighborsMsgEl, `Error: ${err}`);
+      }
+    });
+
+  document
+    .querySelector("#run-get-ipconfig")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setOutput(ipconfigMsgEl, "Running...");
+      try {
+        setOutput(ipconfigMsgEl, await invoke("get_ipconfig"));
+      } catch (err) {
+        setOutput(ipconfigMsgEl, `Error: ${err}`);
+      }
+    });
+
+  document
+    .querySelector("#run-get-route")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setOutput(routeMsgEl, "Running...");
+      try {
+        setOutput(routeMsgEl, await invoke("get_route"));
+      } catch (err) {
+        setOutput(routeMsgEl, `Error: ${err}`);
+      }
+    });
+
+  document
+    .querySelector("#run-test-connection")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setOutput(pingMsgEl, "Running...");
+      try {
+        const { ip_address } = getArgs();
+        setOutput(
+          pingMsgEl,
+          await invoke("test_connection", { host: ip_address }),
+        );
+      } catch (err) {
+        setOutput(pingMsgEl, `Error: ${err}`);
+      }
+    });
+
+  document
+    .querySelector("#run-test-net-connection")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setOutput(netConnectionMsgEl, "Running...");
+      try {
+        const { url } = getArgs();
+        const host = toHost(url);
+        setOutput(
+          netConnectionMsgEl,
+          await invoke("test_net_connection", { host }),
+        );
+      } catch (err) {
+        setOutput(netConnectionMsgEl, `Error: ${err}`);
+      }
+    });
+
+  document
+    .querySelector("#run-resolve-dns")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setOutput(dnsMsgEl, "Running...");
+      try {
+        const { url } = getArgs();
+        const host = toHost(url);
+        setOutput(dnsMsgEl, await invoke("resolve_dns_name", { host }));
+      } catch (err) {
+        setOutput(dnsMsgEl, `Error: ${err}`);
+      }
+    });
+
+  document
+    .querySelector("#run-web-request")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setOutput(webMsgEl, "Running...");
+      try {
+        const { url } = getArgs();
+        setOutput(
+          webMsgEl,
+          await invoke("invoke_web_request", { url: normalizeUrl(url) }),
+        );
+      } catch (err) {
+        setOutput(webMsgEl, `Error: ${err}`);
+      }
+    });
+
+  document
+    .querySelector("#run-tracert")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setOutput(tracertMsgEl, "Running...");
+      try {
+        const { url } = getArgs();
+        const host = toHost(url);
+        setOutput(tracertMsgEl, await invoke("tracert", { host }));
+      } catch (err) {
+        setOutput(tracertMsgEl, `Error: ${err}`);
+      }
+    });
+}
+
+async function getCandidateInterfacesForOS(os) {
+  if (os === "linux") {
+    return await invoke("get_candidate_linux_interfaces");
+  }
+
+  if (os === "windows") {
+    return await invoke("get_candidate_windows_interfaces");
+  }
+
+  return [];
+}
+
+function renderRepairReport(report) {
+  if (!report || !Array.isArray(report.steps)) {
+    return "No repair details available.";
+  }
+
+  const lines = [];
+  const interfaceName = report.interface || "Unknown interface";
+
+  lines.push(`Interface: ${interfaceName}`);
+  lines.push("");
+
+  for (const step of report.steps) {
+    const prefix = step.success ? "[OK]" : "[FAILED]";
+    lines.push(`${prefix} ${step.action}`);
+    lines.push(step.details || "No details provided.");
+    lines.push("");
+  }
+
+  return lines.join("\n").trim();
+}
+
+async function populateCandidateInterfaces(os) {
+  const selectEl = document.getElementById("candidate-interface-select");
+  if (!selectEl) return;
+
+  selectEl.innerHTML = "";
+
+  try {
+    const interfaces = await getCandidateInterfacesForOS(os);
+
+    if (!Array.isArray(interfaces) || !interfaces.length) {
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = "No interfaces found";
+      selectEl.appendChild(option);
+      return;
+    }
+
+    for (const iface of interfaces) {
+      const option = document.createElement("option");
+      option.value = iface;
+      option.textContent = iface;
+      selectEl.appendChild(option);
+    }
+  } catch (err) {
+    console.error("Failed to populate interfaces:", err);
+
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "Failed to load interfaces";
+    selectEl.appendChild(option);
+  }
+}
+
+function setupSolveHandlers(os) {
+  const solveOutputEl = document.getElementById("solve-output");
+  const interfaceSelectEl = document.getElementById(
+    "candidate-interface-select",
+  );
+  const solveBtn = document.getElementById("solve-network-btn");
+  const refreshBtn = document.getElementById("refresh-interfaces-btn");
+  const upBtn = document.getElementById("up-interface-btn");
+  const downBtn = document.getElementById("down-interface-btn");
+  const dhcpBtn = document.getElementById("dhcp-request-btn");
+  const flushDnsBtn = document.getElementById("flush-dns-btn");
+
+  solveBtn?.addEventListener("click", async () => {
+    setOutput(solveOutputEl, "Running repair...");
     try {
-      setOutput(linkStateMsgEl, await invoke("link_state"));
+      const result =
+        os === "linux"
+          ? await invoke("repair_first_candidate_linux")
+          : await invoke("repair_first_candidate_windows");
+
+      setOutput(solveOutputEl, renderRepairReport(result));
+
+      if (interfaceSelectEl) {
+        await populateCandidateInterfaces(os);
+      }
     } catch (err) {
-      setOutput(linkStateMsgEl, `Error: ${err}`);
+      setOutput(solveOutputEl, `Error: ${err}`);
     }
   });
 
-  document.querySelector("#run-get-neighbors")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setOutput(neighborsMsgEl, "Running...");
+  refreshBtn?.addEventListener("click", async () => {
+    setOutput(solveOutputEl, "Loading interfaces...");
     try {
-      setOutput(neighborsMsgEl, await invoke("get_neighbors"));
+      await populateCandidateInterfaces(os);
+      setOutput(solveOutputEl, "Interface list refreshed.");
     } catch (err) {
-      setOutput(neighborsMsgEl, `Error: ${err}`);
+      setOutput(solveOutputEl, `Error: ${err}`);
     }
   });
 
-  document.querySelector("#run-get-ipconfig")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setOutput(ipconfigMsgEl, "Running...");
+  upBtn?.addEventListener("click", async () => {
+    const interfaceName = interfaceSelectEl?.value;
+    if (!interfaceName) {
+      setOutput(solveOutputEl, "No interface selected.");
+      return;
+    }
+
+    setOutput(solveOutputEl, "Bringing interface up...");
     try {
-      setOutput(ipconfigMsgEl, await invoke("get_ipconfig"));
+      const result =
+        os === "linux"
+          ? await invoke("up_linux_interface", { interface: interfaceName })
+          : await invoke("up_windows_interface", { interface: interfaceName });
+
+      setOutput(solveOutputEl, result);
+      await populateCandidateInterfaces(os);
     } catch (err) {
-      setOutput(ipconfigMsgEl, `Error: ${err}`);
+      setOutput(solveOutputEl, `Error: ${err}`);
     }
   });
 
-  document.querySelector("#run-get-route")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setOutput(routeMsgEl, "Running...");
+  downBtn?.addEventListener("click", async () => {
+    const interfaceName = interfaceSelectEl?.value;
+    if (!interfaceName) {
+      setOutput(solveOutputEl, "No interface selected.");
+      return;
+    }
+
+    setOutput(solveOutputEl, "Bringing interface down...");
     try {
-      setOutput(routeMsgEl, await invoke("get_route"));
+      const result =
+        os === "linux"
+          ? await invoke("down_linux_interface", { interface: interfaceName })
+          : await invoke("down_windows_interface", {
+              interface: interfaceName,
+            });
+
+      setOutput(solveOutputEl, result);
+      await populateCandidateInterfaces(os);
     } catch (err) {
-      setOutput(routeMsgEl, `Error: ${err}`);
+      setOutput(solveOutputEl, `Error: ${err}`);
     }
   });
 
-  document.querySelector("#run-test-connection")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setOutput(pingMsgEl, "Running...");
+  dhcpBtn?.addEventListener("click", async () => {
+    const interfaceName = interfaceSelectEl?.value;
+    if (!interfaceName) {
+      setOutput(solveOutputEl, "No interface selected.");
+      return;
+    }
+
+    setOutput(solveOutputEl, "Requesting DHCP...");
     try {
-      const { ip_address } = getArgs();
-      setOutput(pingMsgEl, await invoke("test_connection", { host: ip_address }));
+      const result =
+        os === "linux"
+          ? await invoke("dhcp_request_linux", { interface: interfaceName })
+          : await invoke("dhcp_request_windows", { interface: interfaceName });
+
+      setOutput(solveOutputEl, result);
     } catch (err) {
-      setOutput(pingMsgEl, `Error: ${err}`);
+      setOutput(solveOutputEl, `Error: ${err}`);
     }
   });
 
-  document.querySelector("#run-test-net-connection")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setOutput(netConnectionMsgEl, "Running...");
+  flushDnsBtn?.addEventListener("click", async () => {
+    setOutput(solveOutputEl, "Flushing DNS cache...");
     try {
-      const { url } = getArgs();
-      const host = toHost(url);
-      setOutput(netConnectionMsgEl, await invoke("test_net_connection", { host }));
+      const result =
+        os === "linux"
+          ? await invoke("flush_dns_cache_linux")
+          : await invoke("flush_dns_cache_windows");
+
+      setOutput(solveOutputEl, result);
     } catch (err) {
-      setOutput(netConnectionMsgEl, `Error: ${err}`);
+      setOutput(solveOutputEl, `Error: ${err}`);
     }
   });
 
-  document.querySelector("#run-resolve-dns")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setOutput(dnsMsgEl, "Running...");
-    try {
-      const { url } = getArgs();
-      const host = toHost(url);
-      setOutput(dnsMsgEl, await invoke("resolve_dns_name", { host }));
-    } catch (err) {
-      setOutput(dnsMsgEl, `Error: ${err}`);
-    }
-  });
-
-  document.querySelector("#run-web-request")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setOutput(webMsgEl, "Running...");
-    try {
-      const { url } = getArgs();
-      setOutput(webMsgEl, await invoke("invoke_web_request", { url: normalizeUrl(url) }));
-    } catch (err) {
-      setOutput(webMsgEl, `Error: ${err}`);
-    }
-  });
-
-  document.querySelector("#run-tracert")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setOutput(tracertMsgEl, "Running...");
-    try {
-      const { url } = getArgs();
-      const host = toHost(url);
-      setOutput(tracertMsgEl, await invoke("tracert", { host }));
-    } catch (err) {
-      setOutput(tracertMsgEl, `Error: ${err}`);
-    }
-  });
+  if (interfaceSelectEl) {
+    populateCandidateInterfaces(os).catch((err) => {
+      console.error("Initial interface load failed:", err);
+    });
+  }
 }
 
 function normalizeStatus(status) {
@@ -438,8 +670,7 @@ function getExpandedExplanation(diagnostic) {
 
   if (title.includes("physical connection") && status.includes("pass")) {
     return {
-      meaning:
-        "The system found at least one active network interface.",
+      meaning: "The system found at least one active network interface.",
       likelyCause:
         "Basic physical connectivity appears available at the adapter level.",
       nextStep:
@@ -473,8 +704,7 @@ function getExpandedExplanation(diagnostic) {
     return {
       meaning:
         "The device can see or reach neighboring systems on the local network.",
-      likelyCause:
-        "Local link communication appears to be functioning.",
+      likelyCause: "Local link communication appears to be functioning.",
       nextStep:
         "If internet access still fails, focus on IP addressing, default gateway, DNS, or remote connectivity.",
     };
@@ -502,7 +732,10 @@ function getExpandedExplanation(diagnostic) {
     };
   }
 
-  if (title.includes("ip address") && message.includes("no usable network interface")) {
+  if (
+    title.includes("ip address") &&
+    message.includes("no usable network interface")
+  ) {
     return {
       meaning:
         "The system could not find a non-loopback interface suitable for normal network communication.",
@@ -539,8 +772,7 @@ function getExpandedExplanation(diagnostic) {
     return {
       meaning:
         "A default gateway is present, so the system knows where to send traffic outside the local subnet.",
-      likelyCause:
-        "Routing appears basically correct at this level.",
+      likelyCause: "Routing appears basically correct at this level.",
       nextStep:
         "If the internet is still unreachable, inspect reachability, DNS, and HTTP results.",
     };
@@ -572,8 +804,7 @@ function getExpandedExplanation(diagnostic) {
     return {
       meaning:
         "The target was reachable and the measured response looked reasonable.",
-      likelyCause:
-        "Basic network reachability appears healthy at this stage.",
+      likelyCause: "Basic network reachability appears healthy at this stage.",
       nextStep:
         "If a web service still fails, the issue may be at the transport or application layer rather than general connectivity.",
     };
@@ -592,8 +823,7 @@ function getExpandedExplanation(diagnostic) {
 
   if (title.includes("path trace") && status.includes("pass")) {
     return {
-      meaning:
-        "The route to the destination could be traced successfully.",
+      meaning: "The route to the destination could be traced successfully.",
       likelyCause:
         "Path visibility suggests that traffic can move through the network toward the target.",
       nextStep:
@@ -638,8 +868,7 @@ function getExpandedExplanation(diagnostic) {
     return {
       meaning:
         "The domain name was resolved successfully into one or more IP addresses.",
-      likelyCause:
-        "DNS functionality appears to be working for this lookup.",
+      likelyCause: "DNS functionality appears to be working for this lookup.",
       nextStep:
         "If the website still does not load, focus on HTTP response, service availability, or destination-specific issues.",
     };
@@ -647,8 +876,7 @@ function getExpandedExplanation(diagnostic) {
 
   if (title.includes("http response") && status.includes("fail")) {
     return {
-      meaning:
-        "The target did not return a usable HTTP response.",
+      meaning: "The target did not return a usable HTTP response.",
       likelyCause:
         "The site may be down, blocked, unreachable, or failing before an HTTP status could be returned.",
       nextStep:
@@ -703,7 +931,11 @@ function buildFindingMarkup(diagnostic) {
   const state = normalizeStatus(diagnostic?.status);
   const extra = getExpandedExplanation(diagnostic);
   const label =
-    state === "error" ? "Problem" : state === "warning" ? "Attention" : "Healthy";
+    state === "error"
+      ? "Problem"
+      : state === "warning"
+        ? "Attention"
+        : "Healthy";
 
   return `
     <div class="finding-item finding-${state}">
@@ -786,7 +1018,8 @@ function syncActiveLayerPanel(layerNumber = selectedLayer) {
   }
 
   if (activeFindings) {
-    activeFindings.innerHTML = sourceFindings?.innerHTML || buildIdleFindingMarkup();
+    activeFindings.innerHTML =
+      sourceFindings?.innerHTML || buildIdleFindingMarkup();
   }
 
   if (activeOutput) {
@@ -820,7 +1053,8 @@ function renderLayerDiagnostics(layerName, diagnostics) {
     outputEl.textContent = "No issues reported for this layer.";
 
     if (explanationEl) {
-      explanationEl.textContent = "No further explanation is needed for this layer.";
+      explanationEl.textContent =
+        "No further explanation is needed for this layer.";
     }
 
     if (summaryEl) {
@@ -875,7 +1109,8 @@ function renderLayerDiagnostics(layerName, diagnostics) {
 
   if (summaryEl) {
     summaryEl.textContent =
-      firstDiagnostic?.message || "Diagnostic information is available for this layer.";
+      firstDiagnostic?.message ||
+      "Diagnostic information is available for this layer.";
   }
 
   if (nextStepEl) {
@@ -887,7 +1122,11 @@ function renderLayerDiagnostics(layerName, diagnostics) {
     info.chip,
     info.card,
     worst,
-    worst === "error" ? "Problem" : worst === "warning" ? "Attention" : "Healthy"
+    worst === "error"
+      ? "Problem"
+      : worst === "warning"
+        ? "Attention"
+        : "Healthy",
   );
 
   if (selectedLayer === info.card.split("-")[1]) {
@@ -907,10 +1146,12 @@ function resetQuickScanLayerState() {
 
     if (out) out.textContent = "Waiting for scan results...";
     if (explanation) {
-      explanation.textContent = "Detailed explanation will appear here after the scan.";
+      explanation.textContent =
+        "Detailed explanation will appear here after the scan.";
     }
     if (summary) summary.textContent = "Waiting for scan results...";
-    if (nextStep) nextStep.textContent = "Run a scan to get a suggested action.";
+    if (nextStep)
+      nextStep.textContent = "Run a scan to get a suggested action.";
     if (findings) findings.innerHTML = buildIdleFindingMarkup();
 
     setStatusChip(info.chip, info.card, "warning", "Running");
@@ -941,14 +1182,16 @@ function setupFullDiagnosticsHandler() {
     if (helper) helper.textContent = "Running diagnostics...";
     if (summaryText) summaryText.textContent = "Scan in progress...";
     if (summaryOutput) {
-      summaryOutput.textContent = "Collecting results from the diagnostics engine...";
+      summaryOutput.textContent =
+        "Collecting results from the diagnostics engine...";
     }
 
     setStatusChip("overall-status-chip", "summary-card", "warning", "Running");
     resetQuickScanLayerState();
 
     if (nextStepText) nextStepText.textContent = "Scan in progress.";
-    if (nextStepOutput) nextStepOutput.textContent = "Collecting diagnostics...";
+    if (nextStepOutput)
+      nextStepOutput.textContent = "Collecting diagnostics...";
 
     try {
       const diagnostics = await invoke("run_full_diagnostics", {
@@ -984,23 +1227,30 @@ function setupFullDiagnosticsHandler() {
         "overall-status-chip",
         "summary-card",
         overall,
-        overall === "error" ? "Problem" : overall === "warning" ? "Attention" : "Healthy"
+        overall === "error"
+          ? "Problem"
+          : overall === "warning"
+            ? "Attention"
+            : "Healthy",
       );
 
       if (overall === "error") {
-        if (summaryText) summaryText.textContent = "A network problem was detected.";
+        if (summaryText)
+          summaryText.textContent = "A network problem was detected.";
         if (summaryOutput) {
           summaryOutput.textContent =
             "At least one OSI layer reported a failure. Review the layer list below to see where the issue begins and what it likely means.";
         }
       } else if (overall === "warning") {
-        if (summaryText) summaryText.textContent = "The network may be partially working.";
+        if (summaryText)
+          summaryText.textContent = "The network may be partially working.";
         if (summaryOutput) {
           summaryOutput.textContent =
             "At least one OSI layer reported a warning. The network may still function, but performance or reliability may be reduced.";
         }
       } else {
-        if (summaryText) summaryText.textContent = "Your network looks healthy.";
+        if (summaryText)
+          summaryText.textContent = "Your network looks healthy.";
         if (summaryOutput) {
           summaryOutput.textContent =
             "No major problems were detected in the tested layers. If a user still experiences issues, the problem may be intermittent or specific to a particular application or destination.";
@@ -1013,13 +1263,15 @@ function setupFullDiagnosticsHandler() {
       });
 
       if (!firstBad) {
-        if (nextStepText) nextStepText.textContent = "No urgent next step needed.";
+        if (nextStepText)
+          nextStepText.textContent = "No urgent next step needed.";
         if (nextStepOutput) {
           nextStepOutput.textContent =
             "The scan did not find a clear failure. If a problem still exists, try repeating the scan during the issue or testing a different destination.";
         }
       } else {
-        if (nextStepText) nextStepText.textContent = `Focus on ${firstBad.title}.`;
+        if (nextStepText)
+          nextStepText.textContent = `Focus on ${firstBad.title}.`;
         if (nextStepOutput) {
           nextStepOutput.textContent = [
             firstBad.message,
@@ -1048,9 +1300,13 @@ function setupFullDiagnosticsHandler() {
 window.addEventListener("DOMContentLoaded", async () => {
   setupSharedInputs();
   setupDetailsToggles();
-  setupLayerSelection();
-  setupFullDiagnosticsHandler();
-  syncActiveLayerPanel(selectedLayer);
+
+  if (document.getElementById("run-scan-btn")) {
+    setupLayerSelection();
+    setupFullDiagnosticsHandler();
+    syncActiveLayerPanel(selectedLayer);
+  }
+
   hideAllPanels();
 
   try {
@@ -1060,12 +1316,15 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (os === "linux") {
       showLinuxPanel();
       setupLinuxHandlers();
+      setupSolveHandlers("linux");
     } else if (os === "windows") {
       showWindowsPanel();
       setupWindowsHandlers();
+      setupSolveHandlers("windows");
     } else {
       showLinuxPanel();
       setupLinuxHandlers();
+      setupSolveHandlers("linux");
     }
   } catch (err) {
     console.error("Failed to detect OS:", err);
