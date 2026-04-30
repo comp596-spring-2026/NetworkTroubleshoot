@@ -203,14 +203,14 @@ pub async fn get_candidate_windows_interfaces() -> Result<Vec<String>, String> {
 #[cfg(target_os = "linux")]
 #[tauri::command]
 pub async fn up_linux_interface(interface: String) -> Result<String, String> {
-    linux::run_cmd("ip", &["link", "set", "dev", &interface, "up"])?;
+    linux::run_cmd("nmcli", &["networking", "on"])?;
     Ok(format!("Brought interface '{}' up", interface))
 }
 
 #[cfg(target_os = "linux")]
 #[tauri::command]
 pub async fn down_linux_interface(interface: String) -> Result<String, String> {
-    linux::run_cmd("ip", &["link", "set", "dev", &interface, "down"])?;
+    linux::run_cmd("nmcli", &["networking", "off"])?;
     Ok(format!("Brought interface '{}' down", interface))
 }
 
