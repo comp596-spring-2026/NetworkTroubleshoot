@@ -339,7 +339,7 @@ pub async fn flush_dns_cache_windows() -> Result<String, String> {
 pub async fn repair_linux_interface(interface: String) -> Result<RepairReport, String> {
     let mut report = RepairReport::new(Some(interface.clone()));
 
-    match linux::run_cmd("ip", &["link", "set", "dev", &interface, "up"]) {
+    match linux::run_cmd("nmcli", &["networking", "on"]) {
         Ok(out) => report.push_ok(
             "Bring interface up",
             if out.trim().is_empty() {
