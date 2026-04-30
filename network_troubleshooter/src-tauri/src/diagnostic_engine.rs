@@ -1,16 +1,9 @@
-
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
-    InterfaceStatus,
-    NeighborState,
-    InterfaceAddress,
-    RouteInfo,
-    ReachabilityStatus,
-    TcpStatus,
-    HttpStatus,
-    DnsStatus,
-    TraceStatus};
+    DnsStatus, HttpStatus, InterfaceAddress, InterfaceStatus, NeighborState, ReachabilityStatus,
+    RouteInfo, TcpStatus, TraceStatus,
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum _ScanType {
@@ -26,7 +19,6 @@ pub enum ErrorSeverity {
     Mid,
     High,
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Layer {
@@ -58,7 +50,7 @@ pub fn scan_layer_one(outputs: &[InterfaceStatus]) -> Vec<DiagnosticMessage> {
 
     let usable: Vec<&InterfaceStatus> = outputs
         .iter()
-        .filter(|iface| iface.name != "lo")
+        .filter(|iface| !iface.name.starts_with("lo") && !iface.name.starts_with("docker"))
         .collect();
 
     let any_up = usable.iter().any(|iface| iface.is_up);
@@ -121,27 +113,25 @@ pub fn scan_layer_two(neighbors: &[NeighborState]) -> Vec<DiagnosticMessage> {
     messages
 }
 
-// having each commands for layer 3 checks (ip ping, ip route, ip addr) 
-// have their own functions for diagnostics 
-// and having a seperate command scan_layer_three() 
+// having each commands for layer 3 checks (ip ping, ip route, ip addr)
+// have their own functions for diagnostics
+// and having a seperate command scan_layer_three()
 // that integrates all these commands
 
-pub fn diagnose_reachability_status(
-    output: &ReachabilityStatus
-) -> DiagnosticMessage {
-
+pub fn diagnose_reachability_status(output: &ReachabilityStatus) -> DiagnosticMessage {
     if output.has_loss {
-        return DiagnosticMessage { 
+        return DiagnosticMessage {
             layer: Layer::LayerThree,
             status: CheckStatus::Fail,
             error_level: ErrorSeverity::High,
             title: "Internet Reachability".to_string(),
-            message: "Packet loss detected. The network may be unreachable or unstable.".to_string(),
+            message: "Packet loss detected. The network may be unreachable or unstable."
+                .to_string(),
         };
     }
 
     if !output.is_reasonable {
-        return DiagnosticMessage { 
+        return DiagnosticMessage {
             layer: Layer::LayerThree,
             status: CheckStatus::Warning,
             error_level: ErrorSeverity::Mid,
@@ -162,7 +152,7 @@ pub fn diagnose_reachability_status(
 pub fn diagnose_ip_addr(output: &[InterfaceAddress]) -> DiagnosticMessage {
     let usable: Vec<&InterfaceAddress> = output
         .iter()
-        .filter(|iface| iface.name != "lo")
+        .filter(|iface| !iface.name.starts_with("lo") && !iface.name.starts_with("docker"))
         .collect();
 
     if usable.is_empty() {
@@ -222,9 +212,9 @@ pub fn diagnose_ip_addr(output: &[InterfaceAddress]) -> DiagnosticMessage {
 }
 
 pub fn diagnose_ip_route(output: &[RouteInfo]) -> DiagnosticMessage {
-    let has_default_gateway = output.iter().any(|route| {
-        route.is_default && route.gateway.is_some()
-    });
+    let has_default_gateway = output
+        .iter()
+        .any(|route| route.is_default && route.gateway.is_some());
 
     if has_default_gateway {
         return DiagnosticMessage {
@@ -266,23 +256,20 @@ pub fn scan_layer_three(
 // layer four - netcat
 pub fn scan_layer_four(output: &TcpStatus) -> DiagnosticMessage {
     if !output.is_successful {
-        return DiagnosticMessage { 
-            layer: Layer::LayerFour, 
-            status: CheckStatus::Fail, 
-            error_level: ErrorSeverity::Mid, 
-            title: "TCP Reachability".to_string(), 
-            message: format!(
-                "{} connection to the destination failed.",
-                output.protocol
-            ),
+        return DiagnosticMessage {
+            layer: Layer::LayerFour,
+            status: CheckStatus::Fail,
+            error_level: ErrorSeverity::Mid,
+            title: "TCP Reachability".to_string(),
+            message: format!("{} connection to the destination failed.", output.protocol),
         };
     }
 
-    DiagnosticMessage { 
-        layer: Layer::LayerFour, 
-        status: CheckStatus::Pass, 
-        error_level: ErrorSeverity::None, 
-        title: "TCP Reachability".to_string(), 
+    DiagnosticMessage {
+        layer: Layer::LayerFour,
+        status: CheckStatus::Pass,
+        error_level: ErrorSeverity::None,
+        title: "TCP Reachability".to_string(),
         message: format!(
             "{} connection to the destination was successful.",
             output.protocol
@@ -343,11 +330,11 @@ pub fn diagnose_dns(output: &DnsStatus) -> DiagnosticMessage {
             .as_deref()
             .unwrap_or("Unknown DNS error");
 
-        return DiagnosticMessage { 
-            layer: Layer::LayerSeven, 
-            status: CheckStatus::Fail, 
-            error_level: ErrorSeverity::High, 
-            title: "DNS Resolution".to_string(), 
+        return DiagnosticMessage {
+            layer: Layer::LayerSeven,
+            status: CheckStatus::Fail,
+            error_level: ErrorSeverity::High,
+            title: "DNS Resolution".to_string(),
             message: format!("DNS resolution failed: {reason}."),
         };
     }
@@ -358,11 +345,11 @@ pub fn diagnose_dns(output: &DnsStatus) -> DiagnosticMessage {
         output.resolved_values.join(", ")
     };
 
-    DiagnosticMessage { 
-        layer: Layer::LayerSeven, 
-        status: CheckStatus::Pass, 
-        error_level: ErrorSeverity::None, 
-        title: "DNS Resolution".to_string(), 
+    DiagnosticMessage {
+        layer: Layer::LayerSeven,
+        status: CheckStatus::Pass,
+        error_level: ErrorSeverity::None,
+        title: "DNS Resolution".to_string(),
         message: format!("DNS resolved successfully: {resolved}."),
     }
 }
@@ -370,27 +357,28 @@ pub fn diagnose_dns(output: &DnsStatus) -> DiagnosticMessage {
 // diagnose tracepath
 pub fn diagnose_path(output: &TraceStatus) -> DiagnosticMessage {
     if !output.destination_reached && !output.hops.is_empty() {
-        return DiagnosticMessage { 
-            layer: Layer::LayerThree, 
-            status: CheckStatus::Warning, 
-            error_level: ErrorSeverity::Low, 
-            title: "Path Trace".to_string(), 
-            message: "Trace did not reach the destination, but part of the path was visible.".to_string(),
+        return DiagnosticMessage {
+            layer: Layer::LayerThree,
+            status: CheckStatus::Warning,
+            error_level: ErrorSeverity::Low,
+            title: "Path Trace".to_string(),
+            message: "Trace did not reach the destination, but part of the path was visible."
+                .to_string(),
         };
     } else if !output.destination_reached && output.hops.is_empty() {
-        return DiagnosticMessage { 
-            layer: Layer::LayerThree, 
-            status: CheckStatus::Warning, 
-            error_level: ErrorSeverity::Mid, 
-            title: "Path Trace".to_string(), 
+        return DiagnosticMessage {
+            layer: Layer::LayerThree,
+            status: CheckStatus::Warning,
+            error_level: ErrorSeverity::Mid,
+            title: "Path Trace".to_string(),
             message: "Unable to trace a route to the destination.".to_string(),
         };
     } else {
-        return DiagnosticMessage { 
-            layer: Layer::LayerThree, 
-            status: CheckStatus::Pass, 
-            error_level: ErrorSeverity::None, 
-            title: "Path Trace".to_string(), 
+        return DiagnosticMessage {
+            layer: Layer::LayerThree,
+            status: CheckStatus::Pass,
+            error_level: ErrorSeverity::None,
+            title: "Path Trace".to_string(),
             message: "Route to destination was traced successfully.".to_string(),
         };
     };
