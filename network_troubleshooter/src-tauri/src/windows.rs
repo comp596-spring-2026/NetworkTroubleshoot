@@ -1,4 +1,4 @@
-use crate::diagnostic_engine;
+use crate::diagnostic_engine::{CheckStatus, ErrorSeverity, Layer};
 use crate::windows_parser;
 use diagnostic_engine::DiagnosticMessage;
 use std::process::Command;
