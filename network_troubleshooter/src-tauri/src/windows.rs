@@ -1,6 +1,6 @@
-use crate::diagnostic_engine::{CheckStatus, ErrorSeverity, Layer};
+use crate::diagnostic_engine;
+use crate::diagnostic_engine::{CheckStatus, DiagnosticMessage, ErrorSeverity, Layer};
 use crate::windows_parser;
-use diagnostic_engine::DiagnosticMessage;
 use std::process::Command;
 
 pub fn run_cmd(cmd: &str, args: &[&str]) -> Result<String, String> {
@@ -32,7 +32,7 @@ pub fn run_cmd(cmd: &str, args: &[&str]) -> Result<String, String> {
     }
 }
 
-fn run_powershell(script: &str) -> Result<String, String> {
+pub fn run_powershell(script: &str) -> Result<String, String> {
     run_cmd("powershell", &["-NoProfile", "-Command", script])
 }
 

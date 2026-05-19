@@ -2,14 +2,14 @@
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug,Serialize,Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct InterfaceStatus {
-    pub name : String,
-    pub is_up : bool,
-    pub mac : Option<String>,
+    pub name: String,
+    pub is_up: bool,
+    pub mac: Option<String>,
 }
 
-#[derive(Debug,Serialize,Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct InterfaceAddress {
     pub name: String,
     pub ipv4: Option<String>,
@@ -18,13 +18,14 @@ pub struct InterfaceAddress {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RouteInfo {
-    pub is_default : bool,
-    pub gateway : Option<String>,
-    pub interface : String,
-    pub metric : Option<u32>,
+    pub is_default: bool,
+    pub gateway: Option<String>,
+    pub interface: String,
+    pub metric: Option<u32>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct ConnectionStatus {
     pub name: String,
     pub kind: String,
@@ -42,14 +43,15 @@ pub struct NeighborState {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TcpStatus {
-    pub protocol : String,
-    pub is_successful : bool,
+    pub protocol: String,
+    pub is_successful: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct  ReachabilityStatus { // ping
-   pub has_loss : bool,
-   pub is_reasonable : bool,
+pub struct ReachabilityStatus {
+    // ping
+    pub has_loss: bool,
+    pub is_reasonable: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

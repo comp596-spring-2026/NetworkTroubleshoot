@@ -217,10 +217,13 @@ pub async fn down_linux_interface(interface: String) -> Result<String, String> {
 #[cfg(target_os = "windows")]
 #[tauri::command]
 pub async fn up_windows_interface(interface: String) -> Result<String, String> {
+    let safe_interface = interface.replace('\'', "''");
+
     let cmd = format!(
-        "Enable-NetAdapter -Name '{}' -Confirm:$false",
-        interface.replace('\'', "''")
+        "Get-NetAdapter | Where-Object {{ $_.InterfaceName -eq '{}' }} | Enable-NetAdapter -Confirm:$false",
+        safe_interface
     );
+
     windows::run_powershell(&cmd)?;
     Ok(format!("Enabled interface '{}'", interface))
 }
@@ -228,10 +231,13 @@ pub async fn up_windows_interface(interface: String) -> Result<String, String> {
 #[cfg(target_os = "windows")]
 #[tauri::command]
 pub async fn down_windows_interface(interface: String) -> Result<String, String> {
+    let safe_interface = interface.replace('\'', "''");
+
     let cmd = format!(
-        "Disable-NetAdapter -Name '{}' -Confirm:$false",
-        interface.replace('\'', "''")
+        "Get-NetAdapter | Where-Object {{ $_.InterfaceName -eq '{}' }} | Disable-NetAdapter -Confirm:$false",
+        safe_interface
     );
+
     windows::run_powershell(&cmd)?;
     Ok(format!("Disabled interface '{}'", interface))
 }
@@ -239,7 +245,6 @@ pub async fn down_windows_interface(interface: String) -> Result<String, String>
 #[cfg(target_os = "linux")]
 #[tauri::command]
 pub async fn dhcp_request_linux(interface: String) -> Result<String, String> {
-    // Try dhclient first
     if linux::run_cmd("dhclient", &["-r", &interface]).is_ok() {
         match linux::run_cmd("dhclient", &[&interface]) {
             Ok(out) => {
@@ -252,7 +257,6 @@ pub async fn dhcp_request_linux(interface: String) -> Result<String, String> {
         }
     }
 
-    // Fallback: nmcli device reapply
     if linux::run_cmd("nmcli", &["device", "reapply", &interface]).is_ok() {
         return Ok(format!(
             "Requested DHCP/network reapply on '{}' using nmcli device reapply",
@@ -260,8 +264,8 @@ pub async fn dhcp_request_linux(interface: String) -> Result<String, String> {
         ));
     }
 
-    // Fallback: disconnect/reconnect via nmcli
     linux::run_cmd("nmcli", &["device", "disconnect", &interface]).ok();
+
     linux::run_cmd("nmcli", &["device", "connect", &interface]).map_err(|e| {
         format!(
             "Could not renew DHCP on '{}' using dhclient or nmcli: {}",
@@ -370,7 +374,7 @@ pub async fn repair_windows_interface(interface: String) -> Result<RepairReport,
     let mut report = RepairReport::new(Some(interface.clone()));
 
     let enable_cmd = format!(
-        "Enable-NetAdapter -Name '{}' -Confirm:$false",
+        "Get-NetAdapter | Where-Object {{ $_.InterfaceName -eq '{}' }} | Enable-NetAdapter -Confirm:$false",
         interface.replace('\'', "''")
     );
 
@@ -403,6 +407,7 @@ pub async fn repair_windows_interface(interface: String) -> Result<RepairReport,
 #[tauri::command]
 pub async fn repair_first_candidate_linux() -> Result<RepairReport, String> {
     let interfaces = get_candidate_linux_interfaces().await?;
+
     let first = interfaces
         .into_iter()
         .next()
@@ -415,6 +420,7 @@ pub async fn repair_first_candidate_linux() -> Result<RepairReport, String> {
 #[tauri::command]
 pub async fn repair_first_candidate_windows() -> Result<RepairReport, String> {
     let interfaces = get_candidate_windows_interfaces().await?;
+
     let first = interfaces
         .into_iter()
         .next()

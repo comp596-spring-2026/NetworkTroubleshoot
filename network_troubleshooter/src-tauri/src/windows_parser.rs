@@ -4,20 +4,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::models::{
-    InterfaceStatus,
-    InterfaceAddress,
-    RouteInfo,
-    ConnectionStatus,
-    NeighborState,
-    TcpStatus,
-    ReachabilityStatus,
-    DnsStatus,
-    HttpStatus,
-    TraceHop,
-    TraceStatus
-    };
+    DnsStatus, HttpStatus, InterfaceAddress, InterfaceStatus, NeighborState, ReachabilityStatus,
+    RouteInfo, TcpStatus, TraceHop, TraceStatus,
+};
 
-// ======================= Get-NetAdapter ======================= 
+// ======================= Get-NetAdapter =======================
 
 #[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
@@ -32,8 +23,7 @@ pub fn parse_net_adapter(output: &str) -> Result<Vec<InterfaceStatus>, String> {
     let raw: Vec<NetAdapterRaw> = if output.trim_start().starts_with('[') {
         serde_json::from_str(output).map_err(|e| e.to_string())?
     } else {
-        let single: NetAdapterRaw =
-            serde_json::from_str(output).map_err(|e| e.to_string())?;
+        let single: NetAdapterRaw = serde_json::from_str(output).map_err(|e| e.to_string())?;
         vec![single]
     };
 
@@ -49,7 +39,7 @@ pub fn parse_net_adapter(output: &str) -> Result<Vec<InterfaceStatus>, String> {
     Ok(parsed)
 }
 
-// ======================= Get-NetNeighbors ======================= 
+// ======================= Get-NetNeighbors =======================
 
 #[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
@@ -61,8 +51,7 @@ pub struct NetNeighborRaw {
 }
 
 pub fn parse_net_neighbor(output: &str) -> Result<Vec<NeighborState>, String> {
-    let raw: Vec<NetNeighborRaw> =
-        serde_json::from_str(output).map_err(|e| e.to_string())?;
+    let raw: Vec<NetNeighborRaw> = serde_json::from_str(output).map_err(|e| e.to_string())?;
 
     let parsed = raw
         .into_iter()
@@ -95,16 +84,17 @@ pub fn parse_net_ip_address(output: &str) -> Result<Vec<InterfaceAddress>, Strin
     let raw: Vec<NetIPAddressRaw> = if output.trim_start().starts_with('[') {
         serde_json::from_str(output).map_err(|e| e.to_string())?
     } else {
-        let single: NetIPAddressRaw =
-            serde_json::from_str(output).map_err(|e| e.to_string())?;
+        let single: NetIPAddressRaw = serde_json::from_str(output).map_err(|e| e.to_string())?;
         vec![single]
     };
 
     let mut interfaces: Vec<InterfaceAddress> = Vec::new();
 
     for entry in raw {
-
-        if let Some(existing) = interfaces.iter_mut().find(|i| i.name == entry.InterfaceAlias) {
+        if let Some(existing) = interfaces
+            .iter_mut()
+            .find(|i| i.name == entry.InterfaceAlias)
+        {
             match entry.AddressFamily {
                 2 => {
                     if existing.ipv4.is_none() {
@@ -153,16 +143,14 @@ pub fn parse_net_route(output: &str) -> Result<Vec<RouteInfo>, String> {
     let raw: Vec<NetRouteRaw> = if output.trim_start().starts_with('[') {
         serde_json::from_str(output).map_err(|e| e.to_string())?
     } else {
-        let single: NetRouteRaw =
-            serde_json::from_str(output).map_err(|e| e.to_string())?;
+        let single: NetRouteRaw = serde_json::from_str(output).map_err(|e| e.to_string())?;
         vec![single]
     };
 
     let parsed = raw
         .into_iter()
         .map(|route| RouteInfo {
-            is_default: route.DestinationPrefix == "0.0.0.0/0"
-                || route.DestinationPrefix == "::/0",
+            is_default: route.DestinationPrefix == "0.0.0.0/0" || route.DestinationPrefix == "::/0",
             gateway: if route.NextHop.trim().is_empty()
                 || route.NextHop == "0.0.0.0"
                 || route.NextHop == "::"
@@ -192,8 +180,7 @@ pub fn parse_test_connection(output: &str) -> Result<ReachabilityStatus, String>
     let raw: Vec<TestConnectionRaw> = if output.trim_start().starts_with('[') {
         serde_json::from_str(output).map_err(|e| e.to_string())?
     } else {
-        let single: TestConnectionRaw =
-            serde_json::from_str(output).map_err(|e| e.to_string())?;
+        let single: TestConnectionRaw = serde_json::from_str(output).map_err(|e| e.to_string())?;
         vec![single]
     };
 
@@ -239,8 +226,7 @@ pub struct TestNetConnectionRaw {
 }
 
 pub fn parse_test_net_connection(output: &str) -> Result<TcpStatus, String> {
-    let raw: TestNetConnectionRaw =
-        serde_json::from_str(output).map_err(|e| e.to_string())?;
+    let raw: TestNetConnectionRaw = serde_json::from_str(output).map_err(|e| e.to_string())?;
 
     let protocol = match raw.RemotePort {
         443 => "tcp/https".to_string(),
@@ -268,8 +254,7 @@ pub fn parse_resolve_dns(output: &str) -> Result<DnsStatus, String> {
     let raw: Vec<ResolveDnsRaw> = if output.trim_start().starts_with('[') {
         serde_json::from_str(output).map_err(|e| e.to_string())?
     } else {
-        let single: ResolveDnsRaw =
-            serde_json::from_str(output).map_err(|e| e.to_string())?;
+        let single: ResolveDnsRaw = serde_json::from_str(output).map_err(|e| e.to_string())?;
         vec![single]
     };
 
@@ -330,12 +315,8 @@ pub struct InvokeWebRequestRaw {
     pub StatusCode: u16,
 }
 
-pub fn parse_invoke_web_request(
-    output: &str,
-    url: &str,
-) -> Result<HttpStatus, String> {
-    let raw: InvokeWebRequestRaw =
-        serde_json::from_str(output).map_err(|e| e.to_string())?;
+pub fn parse_invoke_web_request(output: &str, url: &str) -> Result<HttpStatus, String> {
+    let raw: InvokeWebRequestRaw = serde_json::from_str(output).map_err(|e| e.to_string())?;
 
     Ok(HttpStatus {
         url: url.to_string(),
@@ -451,7 +432,9 @@ pub fn parse_tracert(output: &str, target: &str) -> Result<TraceStatus, String> 
             let tail = &parts[start..];
 
             // Look for bracketed IP: [1.2.3.4]
-            let bracket_ip_index = tail.iter().position(|t| t.starts_with('[') && t.ends_with(']'));
+            let bracket_ip_index = tail
+                .iter()
+                .position(|t| t.starts_with('[') && t.ends_with(']'));
 
             if let Some(ip_idx) = bracket_ip_index {
                 let ip_token = tail[ip_idx];
@@ -466,7 +449,10 @@ pub fn parse_tracert(output: &str, target: &str) -> Result<TraceStatus, String> 
                 }
             } else if let Some(last) = tail.last() {
                 // No [ip], maybe IP-only
-                if last.chars().all(|c| c.is_ascii_digit() || c == '.' || c == ':') {
+                if last
+                    .chars()
+                    .all(|c| c.is_ascii_digit() || c == '.' || c == ':')
+                {
                     ip = Some((*last).to_string());
 
                     if tail.len() > 1 {
@@ -501,13 +487,17 @@ pub fn parse_tracert(output: &str, target: &str) -> Result<TraceStatus, String> 
 
     let destination_reached = raw.hops.last().is_some_and(|last| !last.timed_out);
 
-    let hops = raw.hops.into_iter().map(|hop| TraceHop {
-        hop_number: hop.hop_number,
-        host: hop.host,
-        ip: hop.ip,
-        latencies_ms: hop.latencies_ms,
-        timed_out: hop.timed_out,
-    }).collect();
+    let hops = raw
+        .hops
+        .into_iter()
+        .map(|hop| TraceHop {
+            hop_number: hop.hop_number,
+            host: hop.host,
+            ip: hop.ip,
+            latencies_ms: hop.latencies_ms,
+            timed_out: hop.timed_out,
+        })
+        .collect();
 
     Ok(TraceStatus {
         target: raw.target,
