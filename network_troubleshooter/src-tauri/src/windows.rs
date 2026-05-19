@@ -1,9 +1,9 @@
-use std::process::Command;
-use crate::windows_parser;
 use crate::diagnostic_engine;
+use crate::windows_parser;
 use diagnostic_engine::DiagnosticMessage;
+use std::process::Command;
 
-fn run_cmd(cmd: &str, args: &[&str]) -> Result<String, String> {
+pub fn run_cmd(cmd: &str, args: &[&str]) -> Result<String, String> {
     let out = Command::new(cmd)
         .args(args)
         .output()
@@ -33,14 +33,7 @@ fn run_cmd(cmd: &str, args: &[&str]) -> Result<String, String> {
 }
 
 fn run_powershell(script: &str) -> Result<String, String> {
-    run_cmd(
-        "powershell",
-        &[
-            "-NoProfile",
-            "-Command",
-            script,
-        ],
-    )
+    run_cmd("powershell", &["-NoProfile", "-Command", script])
 }
 
 // layer 1 : physical connection
@@ -61,7 +54,7 @@ pub async fn link_state() -> Result<String, String> {
 pub async fn get_neighbors() -> Result<String, String> {
     let output = run_powershell("Get-NetNeighbor | ConvertTo-Json -Depth 4")?;
     let parsed = windows_parser::parse_net_neighbor(&output)?;
-    let diagnostics : Vec<DiagnosticMessage> = diagnostic_engine::scan_layer_two(&parsed);
+    let diagnostics: Vec<DiagnosticMessage> = diagnostic_engine::scan_layer_two(&parsed);
     Ok(format!(
         "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
     ))
@@ -76,7 +69,7 @@ pub async fn get_ipconfig() -> Result<String, String> {
     let diagnostics = diagnostic_engine::diagnose_ip_addr(&parsed);
     Ok(format!(
         "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
-    )) 
+    ))
 }
 
 // layer 3 : routing table
@@ -88,7 +81,7 @@ pub async fn get_route() -> Result<String, String> {
     let diagnostics = diagnostic_engine::diagnose_ip_route(&parsed);
     Ok(format!(
         "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
-    )) 
+    ))
 }
 
 // layer 3 : connectivity test
@@ -104,7 +97,7 @@ pub async fn test_connection(host: String) -> Result<String, String> {
     let diagnostics = diagnostic_engine::diagnose_reachability_status(&parsed);
     Ok(format!(
         "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
-    )) 
+    ))
 }
 
 // layer 4
@@ -121,7 +114,7 @@ pub async fn test_net_connection(host: String) -> Result<String, String> {
     let diagnostics = diagnostic_engine::scan_layer_four(&parsed);
     Ok(format!(
         "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
-    )) 
+    ))
 }
 
 // layer 7
@@ -129,16 +122,13 @@ pub async fn test_net_connection(host: String) -> Result<String, String> {
 // Resolve-DnsName
 #[tauri::command]
 pub async fn resolve_dns_name(host: String) -> Result<String, String> {
-    let script = format!(
-        "Resolve-DnsName -Name '{}' | ConvertTo-Json -Depth 4",
-        host
-    );
+    let script = format!("Resolve-DnsName -Name '{}' | ConvertTo-Json -Depth 4", host);
     let output = run_powershell(&script)?;
     let parsed = windows_parser::parse_resolve_dns(&output)?;
     let diagnostics = diagnostic_engine::diagnose_dns(&parsed);
     Ok(format!(
         "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
-    )) 
+    ))
 }
 
 // can fetch HTTP resources?
@@ -151,14 +141,13 @@ pub async fn invoke_web_request(url: String) -> Result<String, String> {
         url
     );
 
-   let output =  run_powershell(&script)?;
-   let parsed = windows_parser::parse_invoke_web_request(&output,&url)?;
-   let diagnostics = diagnostic_engine::diagnose_http(&parsed);
+    let output = run_powershell(&script)?;
+    let parsed = windows_parser::parse_invoke_web_request(&output, &url)?;
+    let diagnostics = diagnostic_engine::diagnose_http(&parsed);
     Ok(format!(
         "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
-    )) 
+    ))
 }
-
 
 // layer 3 / 4 : path analysis
 // tracert
@@ -169,7 +158,7 @@ pub async fn tracert(host: String) -> Result<String, String> {
     let diagnostics = diagnostic_engine::diagnose_path(&parsed);
     Ok(format!(
         "Parsed:\n{parsed:#?}\n\nDiagnostics:\n{diagnostics:#?}"
-    )) 
+    ))
 }
 
 #[tauri::command]
@@ -341,10 +330,7 @@ pub async fn run_full_diagnostics(
     }
 
     // Layer 7 - DNS
-    let dns_script = format!(
-        "Resolve-DnsName -Name '{}' | ConvertTo-Json -Depth 4",
-        host
-    );
+    let dns_script = format!("Resolve-DnsName -Name '{}' | ConvertTo-Json -Depth 4", host);
 
     match run_powershell(&dns_script) {
         Ok(output) => match windows_parser::parse_resolve_dns(&output) {
